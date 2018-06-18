@@ -179,7 +179,7 @@ ADMIN_REORDER = (
     # {'app': 'products', 'label': 'Products', 'models': ('products.BrandedProduct',)},
 
     # Cross-linked models
-    {'app': 'auth', 'models': ('interactionscore.User', 'auth.Group')},
+    {'app': 'auth', 'models': ('interactionscore.User', 'auth.Group', 'auth.Permission')},
 
 )
 
