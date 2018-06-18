@@ -1,3 +1,4 @@
+from enum import Enum
 from django.db import models as m
 from django.contrib.auth.models import AbstractUser, UserManager as DefaultUserManager
 from django.utils.translation import ugettext_lazy as _
@@ -16,10 +17,20 @@ class AffiliateGroup(m.Model):
                                       self.name)
 
 
+class EngagementPlanPerms(Enum):
+    list_all_ep = 'Can list all EPs'
+    list_own_ag_ep = 'Can list EPs of own AGs'
+    change_own_current_ep = 'Can change own current EP'
+    approve_all_ep = 'Can approve all EPs'
+    approve_own_ag_ep = 'Can approve all EPs'
+
+
 class EngagementPlan(m.Model):
+    class Meta:
+        permissions = [(p.name, p.value) for p in EngagementPlanPerms]
+
     user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
     approved = m.BooleanField(default=False, blank=True)
-
 
 
 class UserManager(DefaultUserManager):
@@ -60,8 +71,7 @@ class User(AbstractUser):
     email = m.EmailField(_('email address'), unique=True)  # enforce unique
 
     # extra fields
-    affiliate_groups = m.ManyToManyField(AffiliateGroup, related_name='users')
+    affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True, related_name='users')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
-

@@ -47,8 +47,14 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
-    list_display = ('email', 'first_name', 'last_name')
+    list_display = ('email', 'roles_and_groups', 'user_affiliate_groups', 'is_staff', 'is_superuser')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('first_name', 'last_name', 'email')
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
+
+    def roles_and_groups(self, obj):
+        return ", ".join([g.name for g in obj.groups.all()])
+
+    def user_affiliate_groups(self, obj):
+        return ", ".join([ag.name for ag in obj.affiliate_groups.all()])
