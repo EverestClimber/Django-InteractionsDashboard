@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'interactions.wsgi.application'
 
 # Custom user mode
 # https://docs.djangoproject.com/en/2.0/topics/auth/customizing/#substituting-a-custom-user-model
-# AUTH_USER_MODEL = 'pigeoncore.User'
+AUTH_USER_MODEL = 'interactionscore.User'
 
 
 # Password validation
@@ -154,6 +154,34 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# admin settings
+ADMIN_REORDER = (
+    # Keep original label and models
+    'sites',
+
+    {'app': 'interactionscore', 'label': 'Core',
+     'models': (
+         'interactionscore.AffiliateGroup',
+         'interactionscore.EngagementPlan',
+     )},
+
+
+    # # Reorder app models
+    # {'app': 'orders', 'models': ('orders.Order', 'orders.PrinterOrder')},
+    #
+    # # models with custom name
+    # {'app': 'interactionscore', 'label': 'Merchants', 'models': (
+    #     {'model': 'interactionscore.Shop', 'label': 'Merchants'},
+    # )},
+    # # Exclude models
+    # {'app': 'products', 'label': 'Templates', 'models': ('products.ProductTemplate',)},
+    # {'app': 'products', 'label': 'Products', 'models': ('products.BrandedProduct',)},
+
+    # Cross-linked models
+    {'app': 'auth', 'models': ('interactionscore.User', 'auth.Group')},
+
+)
 
 # Logging
 LOGGING = {

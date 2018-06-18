@@ -14,8 +14,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
+from rest_framework import routers
+from rest_framework.documentation import include_docs_urls
+from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
+
+from interactionscore import views as core_views
+
+
+router = routers.DefaultRouter()
+router.register(r'engagement-plans', core_views.EngagementPlanViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('nested_admin/', include('nested_admin.urls')),
+    path('api/v1/', include([
+        path('token/obtain/', obtain_jwt_token),
+        path('token/refresh/', refresh_jwt_token),
+        path('token/verify/', verify_jwt_token),
+        path('docs/', include_docs_urls(title='My API title', public=False)),
+    ] + router.urls))
 ]
