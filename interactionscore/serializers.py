@@ -22,3 +22,16 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         )
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+
+        # set user to current user unless an admin user sets it explicitly
+        if (
+            'user' not in validated_data or
+            (not user.is_staff and not user.is_superuser)
+        ):
+            validated_data['user'] = user
+
+        eplan = EngagementPlan.objects.create(**validated_data)
+        return eplan
