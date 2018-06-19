@@ -6,6 +6,7 @@ from django import forms
 from django.urls import resolve
 from django.contrib.auth.models import Permission
 import nested_admin
+from safedelete.admin import SafeDeleteAdmin, highlight_deleted
 
 from .models import (
     AffiliateGroup,
@@ -14,9 +15,9 @@ from .models import (
     EngagementListItem,
     HCPObjective,
     HCPDeliverable,
+    HCP,
     User,
 )
-
 
 admin.site.site_header = "Otsuka Interactions Admin"
 admin.site.site_title = "Otsuka Interactions Admin"
@@ -24,13 +25,17 @@ admin.site.index_title = "Welcome to Otsuka Interactions Admin"
 
 
 @admin.register(AffiliateGroup)
-class AffiliateGroupAdmin(admin.ModelAdmin):
+class AffiliateGroupAdmin(SafeDeleteAdmin):
     model = AffiliateGroup
+    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
 
 
 @admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
+class CommentAdmin(SafeDeleteAdmin):
     model = Comment
+    list_display = (highlight_deleted, "user") + SafeDeleteAdmin.list_display
+    list_filter = ("user",) + SafeDeleteAdmin.list_filter
 
 
 class CommentInline(nested_admin.NestedStackedInline):
@@ -65,26 +70,29 @@ class HCPObjectiveInline(nested_admin.NestedStackedInline):
 def action_engagement_plans_approve(modeladmin, request, queryset):
     for eplan in queryset:
         eplan.approve()
+
+
 action_engagement_plans_approve.short_description = 'Approve'
 
 
 def action_engagement_plans_undo_approval(modeladmin, request, queryset):
     for eplan in queryset:
         eplan.unapprove()
+
+
 action_engagement_plans_undo_approval.short_description = 'Undo Approval'
 
 
 @admin.register(EngagementPlan)
-class EngagementPlanAdmin(nested_admin.NestedModelAdmin):
+class EngagementPlanAdmin(nested_admin.NestedModelAdmin, SafeDeleteAdmin):
     model = EngagementPlan
-    list_display = ('id', 'user', 'approved')
+    list_display = ('id', 'user', 'approved') + SafeDeleteAdmin.list_display
     fieldsets = (
         (None, {'fields': (
             'user',
             'year',
             'approved',
         )}),
-        # ("Engagement List": {'fields': ()})
         (_('Timestamps'), {
             'fields': (
                 'created_at',
@@ -100,10 +108,23 @@ class EngagementPlanAdmin(nested_admin.NestedModelAdmin):
         EngagementListItemInline,
         HCPObjectiveInline,
     )
+    list_filter = ("approved", "user", "year") + SafeDeleteAdmin.list_filter
+
+
+@admin.register(HCP)
+class HCPAdmin(SafeDeleteAdmin):
+    model = HCP
+    list_display = (
+                       highlight_deleted,
+                       "first_name",
+                       "last_name",
+                       "institution_name",
+                   ) + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
 
 
 @admin.register(User)
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(BaseUserAdmin, SafeDeleteAdmin):
     add_form_template = 'admin/auth/user/add_form.html'
     change_user_password_template = None
     fieldsets = (
@@ -119,8 +140,11 @@ class UserAdmin(BaseUserAdmin):
             'classes': ('wide',),
             'fields': ('email', 'password1', 'password2'),
         }),
+    ) + SafeDeleteAdmin.list_display
+    list_display = (
+        'email', 'roles_and_groups', 'user_affiliate_groups',
+        'is_staff', 'is_superuser'
     )
-    list_display = ('email', 'roles_and_groups', 'user_affiliate_groups', 'is_staff', 'is_superuser')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('first_name', 'last_name', 'email')
     ordering = ('email',)
@@ -134,7 +158,7 @@ class UserAdmin(BaseUserAdmin):
 
 
 @admin.register(Permission)
-class EngagementPlanAdmin(admin.ModelAdmin):
+class PermissionAdmin(admin.ModelAdmin):
     model = Permission
     list_display = ('desc', 'codename',)
 

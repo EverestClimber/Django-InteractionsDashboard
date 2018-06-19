@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'safedelete',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -163,7 +164,9 @@ ADMIN_REORDER = (
     {'app': 'interactionscore', 'label': 'Core',
      'models': (
          'interactionscore.AffiliateGroup',
+         'interactionscore.Comment',
          'interactionscore.EngagementPlan',
+         'interactionscore.HCP',
      )},
 
 

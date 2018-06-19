@@ -5,6 +5,9 @@ from django.utils import timezone
 from django.db import models as m
 from django.contrib.auth.models import AbstractUser, UserManager as DefaultUserManager
 from django.utils.translation import ugettext_lazy as _
+from safedelete.models import SafeDeleteModel
+from safedelete.managers import SafeDeleteManager
+from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
 from interactions.helpers import ChoiceEnum
 
@@ -39,7 +42,9 @@ class ApprovableModel(m.Model):
         self.save()
 
 
-class AffiliateGroup(TimestampedModel):
+class AffiliateGroup(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
     name = m.CharField(max_length=255, unique=True)
 
     def __str__(self):
@@ -49,9 +54,11 @@ class AffiliateGroup(TimestampedModel):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
-class Comment(TimestampedModel):
-    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
-    engagement_list_item = m.ForeignKey('EngagementListItem',on_delete=m.CASCADE,
+class Comment(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
+    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True)
+    engagement_list_item = m.ForeignKey('EngagementListItem', on_delete=m.CASCADE,
                                         null=True, blank=True,
                                         related_name='comments')
     hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.CASCADE,
@@ -62,8 +69,8 @@ class Comment(TimestampedModel):
     def __str__(self):
         return '{by} {on} @ {at}'.format(
             by=('by {}'.format(self.user.email) if self.user else ''),
-            on=('ELItem #{}'.format(self.engagement_list_item.id) if self.engagement_list_item else (
-                ('HCPObjective #{}'.format(self.hcp_objective.id) if self.hcp_objective else '')
+            on=('on ELItem #{}'.format(self.engagement_list_item.id) if self.engagement_list_item else (
+                ('on HCPObjective #{}'.format(self.hcp_objective.id) if self.hcp_objective else '')
             )),
             at=self.created_at
         )
@@ -82,28 +89,36 @@ class EngagementPlanPerms(ChoiceEnum):
     approve_own_ag_ep = 'Can approve EPs of own AGs'
 
 
-class EngagementPlan(TimestampedModel, ApprovableModel):
+class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     class Meta:
         permissions = EngagementPlanPerms.choices()
 
-    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
+    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True)
 
     year = m.DateField(blank=True, default=datetime.date.today)
 
 
-class EngagementListItem(TimestampedModel, ApprovableModel):
+class EngagementListItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE)
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
 
-class HCPObjective(TimestampedModel, ApprovableModel):
+class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE)
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
     description = m.TextField()
 
 
-class HCPDeliverable(TimestampedModel):
+class HCPDeliverable(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     class Meta:
         unique_together = (('quarter', 'hcp_objective'),)
 
@@ -127,7 +142,9 @@ class HCPDeliverable(TimestampedModel):
     description = m.CharField(max_length=255, blank=True)
 
 
-class HCP(TimestampedModel):
+class HCP(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
     class ContactPreference(ChoiceEnum):
         email = 'Email'
         phone = 'Phone'
@@ -143,14 +160,24 @@ class HCP(TimestampedModel):
     contact_preference = m.CharField(max_length=255, null=True, blank=True,
                                      choices=ContactPreference.choices())
 
+    def __str__(self):
+        return "{} {}".format(self.first_name, self.last_name)
 
-class Interaction(TimestampedModel):
+    def __repr__(self):
+        return '{}(first_name="{}", last_name="{}")'.format(self.__class__.__name__,
+                                                            self.first_name,
+                                                            self.last_name)
+
+
+class Interaction(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     class OriginOfInteraction(ChoiceEnum):
         option1 = 'Option #1'
         option2 = 'Option #3'
         other = 'Other'
 
-    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True,
+    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True,
                         limit_choices_to={'groups__name': 'Role MSL'},
                         verbose_name='MSL')
     hcp = m.ForeignKey('HCP', on_delete=m.SET_NULL, null=True)
@@ -171,7 +198,9 @@ class Interaction(TimestampedModel):
     is_follow_up_required = m.BooleanField(default=False, verbose_name='Follow up required')
 
 
-class InteractionOutcome(TimestampedModel):
+class InteractionOutcome(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     name = m.CharField(max_length=255, unique=True)
 
     def __str__(self):
@@ -181,7 +210,9 @@ class InteractionOutcome(TimestampedModel):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
-class Project(TimestampedModel):
+class Project(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
     name = m.CharField(max_length=255, unique=True)
 
     def __str__(self):
@@ -200,14 +231,18 @@ def make_resource_filepath(instance, filename):
                         uuid.uuid4().hex + ext)
 
 
-class Resource(TimestampedModel):
+class Resource(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
     user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
 
     url = m.URLField(max_length=255, blank=True)
     file = m.FileField(upload_to=make_resource_filepath, null=True, blank=True)
 
 
-class TherapeuticArea(TimestampedModel):
+class TherapeuticArea(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
     resources = m.ManyToManyField(Resource, blank=True, related_name='tas')
 
     name = m.CharField(max_length=255, unique=True)
@@ -223,7 +258,7 @@ class TherapeuticArea(TimestampedModel):
 #####################################################################
 
 
-class UserManager(DefaultUserManager):
+class UserManager(SafeDeleteManager, DefaultUserManager):
     """Define a model manager for User model with no username field."""
 
     def _create_user(self, email, password, **extra_fields):
@@ -253,7 +288,9 @@ class UserManager(DefaultUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractUser):
+class User(AbstractUser, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     objects = UserManager()
 
     # changed fields:
