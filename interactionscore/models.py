@@ -11,6 +11,7 @@ from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
 from interactions.helpers import ChoiceEnum
 
+
 # Core Business Logic Models
 #####################################################################
 
@@ -99,33 +100,37 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
 
     year = m.DateField(blank=True, default=datetime.date.today)
 
+    def __str__(self):
+        return "{} / {}".format(self.user.email if self.user else '',
+                                self.year.year)
+
 
 class EngagementListItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
-    engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE)
+    engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
+                                   related_name='engagement_list_items')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
 
 class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
-    engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE)
+    engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
+                                   related_name='hcp_objectives')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
     description = m.TextField()
 
 
 class HCPDeliverable(TimestampedModel, SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+    _safedelete_policy = SOFT_DELETE
 
     class Meta:
         unique_together = (('quarter', 'hcp_objective'),)
 
-    class Status(ChoiceEnum):
-        on_track = 'On Track'
-        slightly_behind = 'Slightly Behind'
-        major_issue = 'Major Issue'
+    hcp_objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE,
+                                 related_name='deliverables')
 
     QUARTERS_CHOICES = (
         (1, 'Q1'),
@@ -133,13 +138,16 @@ class HCPDeliverable(TimestampedModel, SafeDeleteModel):
         (3, 'Q3'),
         (4, 'Q4'),
     )
+    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
 
-    hcp_objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE)
+    description = m.CharField(max_length=255, blank=True)
 
+    class Status(ChoiceEnum):
+        on_track = 'On Track'
+        slightly_behind = 'Slightly Behind'
+        major_issue = 'Major Issue'
     status = m.CharField(max_length=255, null=True, blank=True,
                          choices=Status.choices())
-    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
-    description = m.CharField(max_length=255, blank=True)
 
 
 class HCP(TimestampedModel, SafeDeleteModel):

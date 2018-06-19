@@ -9,11 +9,56 @@ from rest_framework.permissions import (
 )
 
 from .models import (
-    EngagementPlan, EngagementPlanPerms,
+    EngagementPlan,
+    EngagementPlanPerms,
+    EngagementListItem,
+    HCP,
+    HCPObjective,
+    HCPDeliverable,
+    AffiliateGroup,
+    TherapeuticArea,
+    Resource,
+    Project,
+    Interaction,
 )
 from .serializers import (
+    AffiliateGroupSerializer,
+    ProjectSerializer,
+    TherapeuticAreaSerializer,
+    ResourceSerializer,
     EngagementPlanSerializer,
+    HCPSerializer,
 )
+
+
+class AffiliateGroupViewSet(viewsets.ModelViewSet):
+    queryset = AffiliateGroup.objects.all()
+    serializer_class = AffiliateGroupSerializer
+    permission_classes = (IsAuthenticated,)
+
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    permission_classes = (IsAuthenticated,)
+
+
+class TherapeuticAreaViewSet(viewsets.ModelViewSet):
+    queryset = TherapeuticArea.objects.all()
+    serializer_class = TherapeuticAreaSerializer
+    permission_classes = (IsAuthenticated,)
+
+
+class ResourceViewSet(viewsets.ModelViewSet):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    permission_classes = (IsAuthenticated,)
+
+
+class HCPViewSet(viewsets.ModelViewSet):
+    queryset = HCP.objects.all()
+    serializer_class = HCPSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class EngagementPlanViewSet(viewsets.ModelViewSet):
@@ -99,3 +144,4 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
     def unapprove(self, request, pk=None):
         self.get_object().unapprove()
         return Response(status=status.HTTP_200_OK)
+

@@ -54,7 +54,7 @@ class EngagementListItemInline(nested_admin.NestedStackedInline):
 class HCPDeliverableInline(nested_admin.NestedTabularInline):
     model = HCPDeliverable
     fields = ('quarter', 'description')
-    extra = 4
+    extra = 0
 
 
 class HCPObjectiveInline(nested_admin.NestedStackedInline):
@@ -86,7 +86,7 @@ action_engagement_plans_undo_approval.short_description = 'Undo Approval'
 @admin.register(EngagementPlan)
 class EngagementPlanAdmin(nested_admin.NestedModelAdmin, SafeDeleteAdmin):
     model = EngagementPlan
-    list_display = ('id', 'user', 'approved') + SafeDeleteAdmin.list_display
+    list_display = (highlight_deleted, 'id', 'user', 'approved') + SafeDeleteAdmin.list_display
     fieldsets = (
         (None, {'fields': (
             'user',
@@ -116,11 +116,13 @@ class HCPAdmin(SafeDeleteAdmin):
     model = HCP
     list_display = (
                        highlight_deleted,
-                       "first_name",
-                       "last_name",
                        "institution_name",
+                       "hcp_affiliate_groups",
                    ) + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
+
+    def hcp_affiliate_groups(self, obj):
+        return ", ".join([ag.name for ag in obj.affiliate_groups.all()])
 
 
 @admin.register(User)
@@ -136,11 +138,11 @@ class UserAdmin(BaseUserAdmin, SafeDeleteAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2'),
-        }),
-    ) + SafeDeleteAdmin.list_display
+                        (None, {
+                            'classes': ('wide',),
+                            'fields': ('email', 'password1', 'password2'),
+                        }),
+                    ) + SafeDeleteAdmin.list_display
     list_display = (
         'email', 'roles_and_groups', 'user_affiliate_groups',
         'is_staff', 'is_superuser'

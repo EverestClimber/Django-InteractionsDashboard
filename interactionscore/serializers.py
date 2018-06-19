@@ -1,10 +1,121 @@
 from rest_framework import serializers
 from .models import (
     EngagementPlan,
+    EngagementListItem,
+    HCP,
+    HCPObjective,
+    HCPDeliverable,
+    AffiliateGroup,
+    TherapeuticArea,
+    Resource,
+    Project,
+    Interaction,
 )
 
 
+class AffiliateGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AffiliateGroup
+        fields = ('id', 'name')
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ('id', 'name')
+
+
+class TherapeuticAreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TherapeuticArea
+        fields = ('id', 'name')
+
+
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resource
+        fields = ('id', 'user_id', 'url', 'file')
+
+
+class HCPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HCP
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'institution_name',
+            'institution_address',
+            'contact_preference',
+            'affiliate_groups',
+            'tas',
+        )
+
+
+class EngagementListItemSerializer(serializers.ModelSerializer):
+    hcp = HCPSerializer(required=False)  # read only!
+    hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
+
+    class Meta:
+        model = EngagementListItem
+        fields = (
+            'hcp',
+            'hcp_id',
+            'approved',
+            'approved_at',
+            'created_at',
+            'updated_at',
+        )
+
+
+class HCPDeliverableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HCPDeliverable
+        fields = (
+            'quarter',
+            'description',
+            'status',
+        )
+
+
+class HCPObjectiveSerializer(serializers.ModelSerializer):
+    hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
+    engagement_plan_id = serializers.PrimaryKeyRelatedField(
+        required=False, queryset=EngagementPlan.objects.all())  # read + write
+    deliverables = HCPDeliverableSerializer(many=True)
+
+    class Meta:
+        model = HCPObjective
+        fields = (
+            'engagement_plan_id',
+            'hcp_id',
+            'description',
+            'approved',
+            'approved_at',
+            'deliverables',
+            # 'comments',
+            'created_at',
+            'updated_at',
+        )
+
+    def create(self, validated_data):
+        deliverables = validated_data.pop('deliverables', [])
+
+        obj = HCPObjective.objects.create(engagement_plan=validated_data.pop('engagement_plan_id'),
+                                          hcp=validated_data.pop('hcp_id'),
+                                          **validated_data)
+
+        for deliverable_data in deliverables:
+            obj.deliverables.create(**deliverable_data)
+
+        return obj
+
+
 class EngagementPlanSerializer(serializers.ModelSerializer):
+    engagement_list_items = EngagementListItemSerializer(many=True)
+    hcp_objectives = HCPObjectiveSerializer(many=True)
+
     class Meta:
         model = EngagementPlan
         fields = (
@@ -13,6 +124,8 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'year',
             'approved',
             'approved_at',
+            'engagement_list_items',
+            'hcp_objectives',
             'created_at',
             'updated_at',
         )
@@ -33,5 +146,29 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
         ):
             validated_data['user'] = user
 
+        engagement_list_items = validated_data.pop('engagement_list_items', [])
+        hcp_objectives = validated_data.pop('hcp_objectives', [])
+
         eplan = EngagementPlan.objects.create(**validated_data)
+
+        for elitem_data in engagement_list_items:
+            eplan.engagement_list_items.create(hcp=elitem_data.pop('hcp_id'),
+                                               **elitem_data)
+
+        for hcp_obj_data in hcp_objectives:
+            hcp_obj_data['engagement_plan_id'] = eplan.id
+            hcp_obj_data['hcp_id'] = hcp_obj_data.pop('hcp_id').id
+            hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
+            hcp_obj_serializer.is_valid()
+            hcp_obj_serializer.save()
+
         return eplan
+
+
+class InteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Interaction
+        fields = (
+            'id',
+            'user',
+        )

@@ -25,7 +25,12 @@ from interactionscore import views as core_views
 
 
 router = routers.DefaultRouter()
+router.register(r'affiliate-groups', core_views.AffiliateGroupViewSet)
 router.register(r'engagement-plans', core_views.EngagementPlanViewSet)
+router.register(r'hcps', core_views.HCPViewSet)
+router.register(r'projects', core_views.ProjectViewSet)
+router.register(r'therapeutic-areas', core_views.TherapeuticAreaViewSet)
+router.register(r'resources', core_views.ResourceViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
