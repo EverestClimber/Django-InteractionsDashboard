@@ -22,54 +22,11 @@ class TimestampedModel(m.Model):
     updated_at = m.DateTimeField(auto_now=True)
 
 
-class AffiliateGroup(TimestampedModel):
-    name = m.CharField(max_length=255, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
-
-
-class Comment(TimestampedModel):
-    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
-    engagement_plan = m.ForeignKey('EngagementPlan', on_delete=m.CASCADE)
-    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.CASCADE)
-    message = m.TextField()
-
-    def __str__(self):
-        return '{by} {on} @ {at}'.format(
-            by=('by {}'.format(self.user.email) if self.user else ''),
-            on=('EP #{}'.format(self.engagement_plan.id) if self.engagement_plan else (
-                ('HCPObjective #{}'.format(self.hcp_objective.id) if self.hcp_objective else '')
-            )),
-            at=self.created_at
-        )
-
-    def __repr__(self):
-        return '{}(user_id={}, engagement_plan_id={}, hcp_objective_id={})'.format(
-            self.__class__.__name__,
-            self.user_id, self.engagement_plan_id, self.hcp_objective_id)
-
-
-class EngagementPlanPerms(ChoiceEnum):
-    list_all_ep = 'Can list all EPs'
-    list_own_ag_ep = 'Can list EPs of own AGs'
-    change_own_current_ep = 'Can change own current EP'
-    approve_all_ep = 'Can approve all EPs'
-    approve_own_ag_ep = 'Can approve EPs of own AGs'
-
-
-class EngagementPlan(TimestampedModel):
+class ApprovableModel(m.Model):
     class Meta:
-        permissions = EngagementPlanPerms.choices()
-
-    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
+        abstract = True
 
     approved = m.BooleanField(default=False, blank=True)
-    year = m.DateField(blank=True, default=datetime.date.today)
-
     approved_at = m.DateTimeField(null=True, blank=True)
 
     def approve(self):
@@ -82,14 +39,68 @@ class EngagementPlan(TimestampedModel):
         self.save()
 
 
-class EngagementListItem(TimestampedModel):
+class AffiliateGroup(TimestampedModel):
+    name = m.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
+
+
+class Comment(TimestampedModel):
+    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
+    engagement_list_item = m.ForeignKey('EngagementListItem',on_delete=m.CASCADE,
+                                        null=True, blank=True,
+                                        related_name='comments')
+    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.CASCADE,
+                                 null=True, blank=True,
+                                 related_name='comments')
+    message = m.TextField()
+
+    def __str__(self):
+        return '{by} {on} @ {at}'.format(
+            by=('by {}'.format(self.user.email) if self.user else ''),
+            on=('ELItem #{}'.format(self.engagement_list_item.id) if self.engagement_list_item else (
+                ('HCPObjective #{}'.format(self.hcp_objective.id) if self.hcp_objective else '')
+            )),
+            at=self.created_at
+        )
+
+    def __repr__(self):
+        return '{}(user_id={}, engagement_list_item_id={}, hcp_objective_id={})'.format(
+            self.__class__.__name__,
+            self.user_id, self.engagement_list_item_id, self.hcp_objective_id)
+
+
+class EngagementPlanPerms(ChoiceEnum):
+    list_all_ep = 'Can list all EPs'
+    list_own_ag_ep = 'Can list EPs of own AGs'
+    change_own_current_ep = 'Can change own current EP'
+    approve_all_ep = 'Can approve all EPs'
+    approve_own_ag_ep = 'Can approve EPs of own AGs'
+
+
+class EngagementPlan(TimestampedModel, ApprovableModel):
+    class Meta:
+        permissions = EngagementPlanPerms.choices()
+
+    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
+
+    year = m.DateField(blank=True, default=datetime.date.today)
+
+
+class EngagementListItem(TimestampedModel, ApprovableModel):
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE)
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
 
-class HCPObjective(TimestampedModel):
+class HCPObjective(TimestampedModel, ApprovableModel):
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE)
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+
+    description = m.TextField()
 
 
 class HCPDeliverable(TimestampedModel):
@@ -105,13 +116,15 @@ class HCPDeliverable(TimestampedModel):
         (1, 'Q1'),
         (2, 'Q2'),
         (3, 'Q3'),
+        (4, 'Q4'),
     )
 
     hcp_objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE)
+
     status = m.CharField(max_length=255, null=True, blank=True,
                          choices=Status.choices())
-    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES,
-                                          default=1)
+    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
+    description = m.CharField(max_length=255, blank=True)
 
 
 class HCP(TimestampedModel):
@@ -132,11 +145,40 @@ class HCP(TimestampedModel):
 
 
 class Interaction(TimestampedModel):
-    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
-    hcp = m.ForeignKey('HCP', on_delete=m.SET_NULL, null=True, blank=True)
-    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True, blank=True)
-    project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True, blank=True)
+    class OriginOfInteraction(ChoiceEnum):
+        option1 = 'Option #1'
+        option2 = 'Option #3'
+        other = 'Other'
+
+    user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True,
+                        limit_choices_to={'groups__name': 'Role MSL'},
+                        verbose_name='MSL')
+    hcp = m.ForeignKey('HCP', on_delete=m.SET_NULL, null=True)
+    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True)
+    project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True)
     resources = m.ManyToManyField('Resource', blank=True, related_name='interactions')
+    outcomes = m.ManyToManyField('InteractionOutcome', blank=True, related_name='interactions')
+
+    description = m.TextField()
+    purpose = m.TextField()
+    is_joint_visit = m.BooleanField(default=False, verbose_name='Joint visit')
+    joint_visit_with = m.TextField(blank=True)  # when is_joint_visit=True
+    origin_of_interaction = m.CharField(max_length=255,
+                                        choices=OriginOfInteraction.choices())
+    origin_of_interaction_other = m.CharField(max_length=255, blank=True)  # when origin_of_interaction="other"
+    is_adverse_event = m.BooleanField(default=False, verbose_name='Adverse event')
+    appropriate_procedures_followed = m.NullBooleanField(default=False, null=True)  # when is_adverse_event=True
+    is_follow_up_required = m.BooleanField(default=False, verbose_name='Follow up required')
+
+
+class InteractionOutcome(TimestampedModel):
+    name = m.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
 class Project(TimestampedModel):
@@ -166,6 +208,8 @@ class Resource(TimestampedModel):
 
 
 class TherapeuticArea(TimestampedModel):
+    resources = m.ManyToManyField(Resource, blank=True, related_name='tas')
+
     name = m.CharField(max_length=255, unique=True)
 
     def __str__(self):

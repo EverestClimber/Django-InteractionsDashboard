@@ -9,7 +9,11 @@ import nested_admin
 
 from .models import (
     AffiliateGroup,
+    Comment,
     EngagementPlan,
+    EngagementListItem,
+    HCPObjective,
+    HCPDeliverable,
     User,
 )
 
@@ -23,6 +27,39 @@ admin.site.index_title = "Welcome to Otsuka Interactions Admin"
 class AffiliateGroupAdmin(admin.ModelAdmin):
     model = AffiliateGroup
 
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    model = Comment
+
+
+class CommentInline(nested_admin.NestedStackedInline):
+    model = Comment
+    fields = ('user', 'message')
+    extra = 0
+
+
+class EngagementListItemInline(nested_admin.NestedStackedInline):
+    model = EngagementListItem
+    fields = ('hcp', 'approved',)
+    extra = 0
+    inlines = (CommentInline,)
+
+
+class HCPDeliverableInline(nested_admin.NestedTabularInline):
+    model = HCPDeliverable
+    fields = ('quarter', 'description')
+    extra = 4
+
+
+class HCPObjectiveInline(nested_admin.NestedStackedInline):
+    model = HCPObjective
+    fields = ('hcp', 'description', 'approved',)
+    extra = 0
+    inlines = (
+        HCPDeliverableInline,
+        CommentInline,
+    )
 
 
 def action_engagement_plans_approve(modeladmin, request, queryset):
@@ -38,7 +75,7 @@ action_engagement_plans_undo_approval.short_description = 'Undo Approval'
 
 
 @admin.register(EngagementPlan)
-class EngagementPlanAdmin(admin.ModelAdmin):
+class EngagementPlanAdmin(nested_admin.NestedModelAdmin):
     model = EngagementPlan
     list_display = ('id', 'user', 'approved')
     fieldsets = (
@@ -47,6 +84,7 @@ class EngagementPlanAdmin(admin.ModelAdmin):
             'year',
             'approved',
         )}),
+        # ("Engagement List": {'fields': ()})
         (_('Timestamps'), {
             'fields': (
                 'created_at',
@@ -58,6 +96,10 @@ class EngagementPlanAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('created_at', 'updated_at', 'approved')
     actions = (action_engagement_plans_approve, action_engagement_plans_undo_approval)
+    inlines = (
+        EngagementListItemInline,
+        HCPObjectiveInline,
+    )
 
 
 @admin.register(User)
