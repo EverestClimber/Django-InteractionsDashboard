@@ -28,6 +28,7 @@ from .serializers import (
     ResourceSerializer,
     EngagementPlanSerializer,
     HCPSerializer,
+    InteractionSerializer,
 )
 
 
@@ -58,6 +59,12 @@ class ResourceViewSet(viewsets.ModelViewSet):
 class HCPViewSet(viewsets.ModelViewSet):
     queryset = HCP.objects.all()
     serializer_class = HCPSerializer
+    permission_classes = (IsAuthenticated,)
+
+
+class InteractionViewSet(viewsets.ModelViewSet):
+    queryset = Interaction.objects.all()
+    serializer_class = InteractionSerializer
     permission_classes = (IsAuthenticated,)
 
 
