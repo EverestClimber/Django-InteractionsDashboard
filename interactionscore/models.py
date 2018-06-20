@@ -315,3 +315,10 @@ class User(AbstractUser, SafeDeleteModel):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    def has_interactions_perm(self, perm):
+        """Helper to check our custom perms more succinctly.
+
+        """
+        return self.has_perm('interactionscore.' +
+                             (perm if type(perm) is str else perm.name))
