@@ -106,6 +106,9 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
 
 
 class EngagementListItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
+    """This is basically a m2m HCP <-> Engagement, but it can have additional
+    stuff like approval tacked to it.
+    """
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,

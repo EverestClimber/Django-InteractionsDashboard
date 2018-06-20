@@ -102,11 +102,15 @@ class HCPObjectiveSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         deliverables = validated_data.pop('deliverables', [])
 
-        obj = HCPObjective.objects.create(engagement_plan=validated_data.pop('engagement_plan_id'),
-                                          hcp=validated_data.pop('hcp_id'),
-                                          **validated_data)
+        # unfuck DRF handling of write to _id fields
+        validated_data['engagement_plan'] = validated_data.pop('engagement_plan_id')
+        validated_data['hcp'] = validated_data.pop('hcp_id')
+
+        # super call to properly handle m2m rels
+        obj = super().create(validated_data)
 
         for deliverable_data in deliverables:
+            # create directly bc there are no writable nested fields under this
             obj.deliverables.create(**deliverable_data)
 
         return obj
@@ -149,20 +153,29 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
         engagement_list_items = validated_data.pop('engagement_list_items', [])
         hcp_objectives = validated_data.pop('hcp_objectives', [])
 
-        eplan = EngagementPlan.objects.create(**validated_data)
+        # call super so it also does right thing for m2m rels
+        eplan = super().create(validated_data)
 
         for elitem_data in engagement_list_items:
+            # create directly bc there are no writable nested fields under this
             eplan.engagement_list_items.create(hcp=elitem_data.pop('hcp_id'),
                                                **elitem_data)
 
         for hcp_obj_data in hcp_objectives:
+            # use child serializer bc there are deeper level nestings
+
+            # unfuck DRF handling of write to _id fields
             hcp_obj_data['engagement_plan_id'] = eplan.id
             hcp_obj_data['hcp_id'] = hcp_obj_data.pop('hcp_id').id
+
             hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
             hcp_obj_serializer.is_valid()
             hcp_obj_serializer.save()
 
         return eplan
+
+    # def update(self, instance, validated_data):
+    #     pass
 
 
 class InteractionSerializer(serializers.ModelSerializer):
