@@ -30,7 +30,7 @@ local_settings.py
 
 ## Shell script to load some handy dev helpers
 # (copy dev_activate.example.sh and adapt it to your environment)
-/dev_activate.sh
+/dev-activate.sh
 
 ## These may be used for deployment by sysadmins so we'll ignore but keep
 ## them separate from dev helpers

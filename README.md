@@ -37,3 +37,8 @@ virtualenv -p /usr/bin/python3 ../venv_dev
 . ../venv_dev/bin/activate
 pip install -r requirements/dev.txt
 ```
+
+Helpers (optional):
+
+1. `cp dev-activate.example.sh dev-activate.sh` (`dev-activate.sh` is git ignored so can be machine specific)
+2. edit your `dev-activate.sh` to match machines path etc.
