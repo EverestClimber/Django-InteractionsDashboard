@@ -4,7 +4,8 @@ Link fileds from `docs/` like this: [API Docs](docs/api.md).
 
 ## Dependencies
 
-`TODO: write this!`
+* Python 3.5+
+* PostgreSQL 9.6+
 
 ## Product deployment procedure
 

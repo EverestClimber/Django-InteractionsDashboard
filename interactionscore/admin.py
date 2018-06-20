@@ -138,15 +138,15 @@ class UserAdmin(BaseUserAdmin, SafeDeleteAdmin):
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
     add_fieldsets = (
-                        (None, {
-                            'classes': ('wide',),
-                            'fields': ('email', 'password1', 'password2'),
-                        }),
-                    ) + SafeDeleteAdmin.list_display
-    list_display = (
-        'email', 'roles_and_groups', 'user_affiliate_groups',
-        'is_staff', 'is_superuser'
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
     )
+    list_display = (
+                       'email', 'roles_and_groups', 'user_affiliate_groups',
+                       'is_staff', 'is_superuser'
+                   ) + SafeDeleteAdmin.list_display
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('first_name', 'last_name', 'email')
     ordering = ('email',)
