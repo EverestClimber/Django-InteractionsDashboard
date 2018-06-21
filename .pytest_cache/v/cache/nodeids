@@ -1,3 +1,4 @@
 [
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_create_engagement_plan",
   "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_list_engagement_plans"
 ]
