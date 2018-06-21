@@ -15,3 +15,11 @@ def get_item(target_list, field, value):
     r = [it for it in target_list if it[field] == value]
     assert len(r) == 1
     return r[0]
+
+
+def find_item(target_list, field, value, default=None):
+    r = [it for it in target_list if it[field] == value]
+    if len(r) >= 1:
+        return r[0]
+    else:
+        return default

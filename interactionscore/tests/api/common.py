@@ -74,49 +74,66 @@ class BaseAPITestCase(APITestCase):
         cls.hcp2 = HCP.objects.create(email='hcp.2@test.com')
         cls.hcp3 = HCP.objects.create(email='hcp.3@test.com')
 
-        # engagement plan
+        # engagement plans
         cls.ep1 = EngagementPlan.objects.create(
             user=cls.user_msl1,
-            year='2017-01-01'
+            year='2018-01-01'
         )
         cls.ep1.engagement_list_items.create(hcp=cls.hcp1)
         cls.ep1.engagement_list_items.create(hcp=cls.hcp2)
-        cls.ep1.engagement_list_items.create(hcp=cls.hcp3)
+
         ep1_obj1 = cls.ep1.hcp_objectives.create(hcp=cls.hcp1,
                                                  description='hcp 1 obj desc')
         ep1_obj1.deliverables.create(quarter=1, description='q1 desc')
         ep1_obj1.deliverables.create(quarter=2, description='q2 desc')
         ep1_obj1.deliverables.create(quarter=3, description='q3 desc')
 
-        cls.ep1 = EngagementPlan.objects.create(
+        ep1_obj1b = cls.ep1.hcp_objectives.create(hcp=cls.hcp1,
+                                                  description='hcp 1b obj desc')
+        ep1_obj1b.deliverables.create(quarter=1, description='q1 desc')
+        ep1_obj1b.deliverables.create(quarter=2, description='q2 desc')
+        ep1_obj1b.deliverables.create(quarter=3, description='q3 desc')
+        ep1_obj1b.deliverables.create(quarter=4, description='q4 desc')
+
+        ep1_obj2 = cls.ep1.hcp_objectives.create(hcp=cls.hcp2,
+                                                 description='hcp 2 obj desc')
+        ep1_obj2.deliverables.create(quarter=2, description='q2 desc')
+        ep1_obj2.deliverables.create(quarter=3, description='q3 desc')
+
+        cls.ep2 = EngagementPlan.objects.create(
             user=cls.user_msl2,
             year='2018-01-01'
         )
-        cls.ep1.engagement_list_items.create(hcp=cls.hcp1)
-        cls.ep1.engagement_list_items.create(hcp=cls.hcp2)
-        cls.ep1.engagement_list_items.create(hcp=cls.hcp3)
-        ep1_obj1 = cls.ep1.hcp_objectives.create(hcp=cls.hcp1,
-                                                  description='hcp 1 obj desc')
-        ep1_obj1.deliverables.create(quarter=1, description='q1 desc')
-        ep1_obj1.deliverables.create(quarter=2, description='q2 desc')
-        ep1_obj1.deliverables.create(quarter=3, description='q3 desc')
+        cls.ep2.engagement_list_items.create(hcp=cls.hcp1)
+        cls.ep2.engagement_list_items.create(hcp=cls.hcp2)
+        ep2_obj1 = cls.ep2.hcp_objectives.create(hcp=cls.hcp1,
+                                                 description='hcp 1 obj desc')
+        ep2_obj1.deliverables.create(quarter=1, description='q1 desc')
+        ep2_obj1.deliverables.create(quarter=2, description='q2 desc')
+        ep2_obj1.deliverables.create(quarter=3, description='q3 desc')
 
         # projects
         cls.proj1 = Project.objects.create(name='project 1')
         cls.proj2 = Project.objects.create(name='project 2')
+        cls.proj2 = Project.objects.create(name='project 3')
 
         # resources
         cls.res1 = Resource.objects.create(url='http://www.test.com/res1.pdf')
         cls.res2 = Resource.objects.create(url='http://www.test.org/file2.zip')
+        cls.res3 = Resource.objects.create(url='http://www.test.co.uk/imh3/jpg')
 
         # interaction outcomes
         cls.iout1 = InteractionOutcome.objects.create(name='outcome 1')
         cls.iout2 = InteractionOutcome.objects.create(name='outcome 2')
+        cls.iout3 = InteractionOutcome.objects.create(name='outcome 3')
 
-        # interaction
+        # interactions
         cls.inter1 = Interaction.objects.create(
             user=cls.user_msl1,
             hcp=cls.hcp1,
+            project=cls.proj1,
             description='first interaction between MSL1 and HCP1',
         )
+        cls.inter1.resources.set([cls.res1])
+        cls.inter1.outcomes.set([cls.iout3])
 

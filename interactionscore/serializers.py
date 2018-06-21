@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from collections import defaultdict
 from .models import (
     EngagementPlan,
     EngagementListItem,
@@ -193,6 +194,31 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'updated_at',
         )
 
+    def validate(self, data):
+        # validate there aren't multiple items referencing same hcp
+        engagement_list_items = data.get('engagement_list_items', [])
+        items_for_hcp = defaultdict(int)
+        for elitem_data in engagement_list_items:
+            if 'hcp_id' in elitem_data:
+                items_for_hcp[
+                    elitem_data['hcp_id']
+                    if type(elitem_data['hcp_id']) is str
+                    else elitem_data['hcp_id'].id
+                ] += 1
+        multiple_referenced_hcp_ids = [
+            hcp_id for hcp_id, n in items_for_hcp.items()
+            if n > 1
+        ]
+        if multiple_referenced_hcp_ids:
+            msg = (
+                "Some HCPs are referenced multiple time in engagement_list_items" +
+                " which is not allowed. IDs of multiply referenced HCPs: " +
+                ", ".join(map(str, multiple_referenced_hcp_ids))
+            )
+            raise serializers.ValidationError(msg)
+
+        return data
+
     def create(self, validated_data):
         # set user to current user unless user is admin
         user = self.context['request'].user
@@ -234,13 +260,19 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
 
         # engagement_list_items nested
         #########################################
+        hcp_ids_for_deleted_items = set()
         if engagement_list_items is not None:
             # delete items not present
-            eplan.engagement_list_items.exclude(
+            elitems_to_delete = eplan.engagement_list_items.exclude(
                 id__in=(elitem_data['id']
                         for elitem_data in engagement_list_items
                         if 'id' in elitem_data)
-            ).delete()
+            )
+            hcp_ids_for_deleted_items = set(
+                elitem.hcp_id for elitem in elitems_to_delete
+            )
+            elitems_to_delete.delete()
+
             for elitem_data in engagement_list_items:
                 elitem_data = fix_nested_id_fields(elitem_data)
                 if 'id' in elitem_data:  # update existing if with id
@@ -252,12 +284,16 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
         # hcp_objectives nested
         #########################################
         if hcp_objectives is not None:
-            # delete items not present
+            # delete objs not present
             eplan.hcp_objectives.exclude(
                 id__in=(hcp_obj_data['id']
                         for hcp_obj_data in hcp_objectives
                         if 'id' in hcp_obj_data)
             ).delete()
+
+            # delete objs referenced by deleted elitems
+            eplan.hcp_objectives.filter(hcp_id__in=hcp_ids_for_deleted_items).delete()
+
             for hcp_obj_data in hcp_objectives:
                 hcp_obj_data['engagement_plan_id'] = eplan.id
                 hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
@@ -284,6 +320,8 @@ class InteractionSerializer(serializers.ModelSerializer):
     hcp_id = serializers.IntegerField()
     hcp_objective = HCPObjectiveSerializer(required=False)
     hcp_objective_id = serializers.IntegerField()
+    project = ProjectSerializer(required=False)
+    project_id = serializers.IntegerField()
 
     class Meta:
         model = Interaction
@@ -297,6 +335,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'hcp_objective',
             'hcp_objective_id',
             'project',
+            'project_id',
             'resources',
             'outcomes',
             'is_joint_visit',
