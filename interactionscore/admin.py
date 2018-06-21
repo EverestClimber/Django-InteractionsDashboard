@@ -10,6 +10,7 @@ from safedelete.admin import SafeDeleteAdmin, highlight_deleted
 
 from .models import (
     AffiliateGroup,
+    TherapeuticArea,
     Comment,
     EngagementPlan,
     EngagementListItem,
@@ -27,6 +28,13 @@ admin.site.index_title = "Welcome to Otsuka Interactions Admin"
 @admin.register(AffiliateGroup)
 class AffiliateGroupAdmin(SafeDeleteAdmin):
     model = AffiliateGroup
+    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
+
+
+@admin.register(TherapeuticArea)
+class TherapeuticAreaAdmin(SafeDeleteAdmin):
+    model = TherapeuticArea
     list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
 
@@ -133,6 +141,7 @@ class UserAdmin(BaseUserAdmin, SafeDeleteAdmin):
         (None, {'fields': ('email', 'password', 'business_title')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name')}),
         (_('Affiliate groups'), {'fields': ('affiliate_groups',)}),
+        (_('Therapeutic Areas'), {'fields': ('tas',)}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
                                        'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),

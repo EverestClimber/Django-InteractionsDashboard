@@ -40,6 +40,8 @@ urlpatterns = [
         path('token/obtain/', obtain_jwt_token),
         path('token/refresh/', refresh_jwt_token),
         path('token/verify/', verify_jwt_token),
+        path('self/', core_views.CurrentUserView.as_view(), name='users-current'),
         path('docs/', include_docs_urls(title='My API title', public=False)),
+        path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     ] + router.urls))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

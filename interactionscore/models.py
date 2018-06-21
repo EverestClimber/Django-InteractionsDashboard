@@ -312,6 +312,7 @@ class User(AbstractUser, SafeDeleteModel):
     business_title = m.CharField(max_length=255, blank=True,
                                  help_text='Business position title, eg. "Medical Manager"')
     affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True, related_name='users')
+    tas = m.ManyToManyField(TherapeuticArea, blank=True, related_name='users')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

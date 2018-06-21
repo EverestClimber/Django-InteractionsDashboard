@@ -4,6 +4,7 @@ from rest_framework import permissions
 from rest_framework.exceptions import APIException
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.permissions import (
     IsAuthenticated,
 )
@@ -29,6 +30,7 @@ from .serializers import (
     EngagementPlanSerializer,
     HCPSerializer,
     InteractionSerializer,
+    UserSerializer,
 )
 
 
@@ -225,3 +227,9 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
             eplan.unapprove()
 
         return Response(self.get_serializer(eplan).data)
+
+
+class CurrentUserView(APIView):
+    def get(self, request):
+        serializer = UserSerializer(request.user, context={'request': request})
+        return Response(serializer.data)

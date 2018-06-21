@@ -12,6 +12,7 @@ from .models import (
     Project,
     Interaction,
     InteractionOutcome,
+    User,
 )
 
 
@@ -354,3 +355,25 @@ class InteractionSerializer(serializers.ModelSerializer):
             validated_data['user'] = user
 
         return super().create(validated_data)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    group_names = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'group_names',
+            'permissions',
+            'affiliate_groups',
+            'tas',
+        )
+
+    def get_group_names(self, user):
+        return [group.name for group in user.groups.all()]
+
+    def get_permissions(self, user):
+        return user.get_all_permissions()
