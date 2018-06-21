@@ -189,7 +189,7 @@ class Interaction(TimestampedModel, SafeDeleteModel):
         other = 'Other'
 
     user = m.ForeignKey('User', on_delete=m.CASCADE, null=True,
-                        limit_choices_to={'groups__name': 'Role MSL'},
+                        # limit_choices_to={'groups__name': 'Role MSL'},
                         verbose_name='MSL')
     hcp = m.ForeignKey('HCP', on_delete=m.SET_NULL, null=True)
     hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True)

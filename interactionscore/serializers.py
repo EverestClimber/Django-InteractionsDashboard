@@ -10,6 +10,7 @@ from .models import (
     Resource,
     Project,
     Interaction,
+    InteractionOutcome,
 )
 
 
@@ -46,6 +47,12 @@ class TherapeuticAreaSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
+class InteractionOutcomeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InteractionOutcome
+        fields = ('id', 'name')
+
+
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
@@ -69,7 +76,7 @@ class HCPSerializer(serializers.ModelSerializer):
 
 
 class EngagementListItemSerializer(serializers.ModelSerializer):
-    hcp = HCPSerializer(required=False)  # read only!
+    hcp = HCPSerializer(required=False, read_only=True)
     hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
 
     class Meta:
@@ -187,12 +194,9 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
         )
 
     def create(self, validated_data):
-        # set user to current user unless an admin user sets it explicitly
+        # set user to current user unless user is admin
         user = self.context['request'].user
-        if (
-            'user' not in validated_data or
-            (not user.is_staff and not user.is_superuser)
-        ):
+        if not user.is_staff and not user.is_superuser:
             validated_data['user'] = user
 
         engagement_list_items = validated_data.pop('engagement_list_items', None)
@@ -276,9 +280,38 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
 
 
 class InteractionSerializer(serializers.ModelSerializer):
+    hcp = HCPSerializer(required=False)
+    hcp_id = serializers.IntegerField()
+    hcp_objective = HCPObjectiveSerializer(required=False)
+    hcp_objective_id = serializers.IntegerField()
+
     class Meta:
         model = Interaction
         fields = (
             'id',
-            'user',
+            'user_id',
+            'hcp',
+            'hcp_id',
+            'description',
+            'purpose',
+            'hcp_objective',
+            'hcp_objective_id',
+            'project',
+            'resources',
+            'outcomes',
+            'is_joint_visit',
+            'joint_visit_with',
+            'origin_of_interaction',
+            'origin_of_interaction_other',
+            'is_adverse_event',
+            'appropriate_procedures_followed',
+            'is_follow_up_required',
         )
+
+    def create(self, validated_data):
+        # set user to current user unless user is admin
+        user = self.context['request'].user
+        if not user.is_staff and not user.is_superuser:
+            validated_data['user'] = user
+
+        return super().create(validated_data)
