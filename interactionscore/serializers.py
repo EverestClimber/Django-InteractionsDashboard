@@ -170,7 +170,7 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
         model = EngagementPlan
         fields = (
             'id',
-            'user',
+            'user_id',
             'year',
             'approved',
             'approved_at',
