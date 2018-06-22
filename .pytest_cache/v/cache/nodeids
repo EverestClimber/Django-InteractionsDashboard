@@ -1,3 +1,9 @@
 [
-  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_update_engagement_plan"
+  "interactionscore/tests/test_testing.py::test_testing",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_create_engagement_plan",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_list_engagement_plans",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_update_engagement_plan",
+  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_create_interaction",
+  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_list_interactions",
+  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_update_interactions"
 ]

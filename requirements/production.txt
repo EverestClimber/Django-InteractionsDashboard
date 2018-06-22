@@ -16,6 +16,7 @@ idna==2.7
 itypes==1.1.0
 Jinja2==2.10
 kombu==4.2.1
+Markdown==2.6.11
 MarkupSafe==1.0
 psycopg2==2.7.4
 PyJWT==1.6.4

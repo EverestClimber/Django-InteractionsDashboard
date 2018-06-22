@@ -14,6 +14,7 @@ from interactionscore.models import (
 USER_ROLES = {
     'MSL': [
         (EngagementPlan, EngagementPlanPerms.change_own_current_ep),
+        (EngagementPlan, 'add_engagementplan'),
     ],
     'MSL Manager': [
         (EngagementPlan, EngagementPlanPerms.list_own_ag_ep),
@@ -45,7 +46,7 @@ class Command(BaseCommand):
 
         self.stdout.write('Creating new Groups and Permissions...')
         for name, perm_opts in USER_ROLES.items():
-            group = Group.objects.create(name='Role ' + name)
+            group, _ = Group.objects.get_or_create(name='Role ' + name)
             self.stdout.write('- created group ' + group.name)
             for model_class, perm_opt in perm_opts:
                 if options['create_new_permissions']:
