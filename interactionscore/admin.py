@@ -13,7 +13,7 @@ from .models import (
     TherapeuticArea,
     Comment,
     EngagementPlan,
-    EngagementListItem,
+    EngagementPlanItem,
     HCPObjective,
     HCPDeliverable,
     HCP,
@@ -52,13 +52,6 @@ class CommentInline(nested_admin.NestedStackedInline):
     extra = 0
 
 
-class EngagementListItemInline(nested_admin.NestedStackedInline):
-    model = EngagementListItem
-    fields = ('hcp', 'approved',)
-    extra = 0
-    inlines = (CommentInline,)
-
-
 class HCPDeliverableInline(nested_admin.NestedTabularInline):
     model = HCPDeliverable
     fields = ('quarter', 'description')
@@ -71,8 +64,14 @@ class HCPObjectiveInline(nested_admin.NestedStackedInline):
     extra = 0
     inlines = (
         HCPDeliverableInline,
-        CommentInline,
     )
+
+
+class EngagementPlanItemInline(nested_admin.NestedStackedInline):
+    model = EngagementPlanItem
+    fields = ('hcp', 'approved',)
+    extra = 0
+    inlines = (HCPObjectiveInline, CommentInline)
 
 
 def action_engagement_plans_approve(modeladmin, request, queryset):
@@ -113,8 +112,7 @@ class EngagementPlanAdmin(nested_admin.NestedModelAdmin, SafeDeleteAdmin):
     readonly_fields = ('created_at', 'updated_at', 'approved')
     actions = (action_engagement_plans_approve, action_engagement_plans_undo_approval)
     inlines = (
-        EngagementListItemInline,
-        HCPObjectiveInline,
+        EngagementPlanItemInline,
     )
     list_filter = ("approved", "user", "year") + SafeDeleteAdmin.list_filter
 

@@ -11,7 +11,6 @@ from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
 from interactions.helpers import ChoiceEnum
 
-
 # Core Business Logic Models
 #####################################################################
 
@@ -55,16 +54,17 @@ class AffiliateGroup(TimestampedModel, SafeDeleteModel):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
+# TODO: rel to objective
 class Comment(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True)
-    engagement_list_item = m.ForeignKey('EngagementListItem', on_delete=m.CASCADE,
+    engagement_plan = m.ForeignKey('EngagementPlan', on_delete=m.CASCADE,
+                                   null=True, blank=True,
+                                   related_name='comments')
+    engagement_plan_item = m.ForeignKey('EngagementPlanItem', on_delete=m.CASCADE,
                                         null=True, blank=True,
                                         related_name='comments')
-    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.CASCADE,
-                                 null=True, blank=True,
-                                 related_name='comments')
     message = m.TextField()
 
     def __str__(self):
@@ -105,22 +105,19 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
                                 self.year.year)
 
 
-class EngagementListItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
-    """This is basically a m2m HCP <-> Engagement, but it can have additional
-    stuff like approval tacked to it.
-    """
+class EngagementPlanItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
-                                   related_name='engagement_list_items')
+                                   related_name='items')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
 
 class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
-    engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
-                                   related_name='hcp_objectives')
+    engagement_plan_item = m.ForeignKey(EngagementPlanItem, on_delete=m.CASCADE,
+                                        related_name='hcp_objectives')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
     description = m.TextField()
@@ -149,6 +146,7 @@ class HCPDeliverable(TimestampedModel, SafeDeleteModel):
         on_track = 'On Track'
         slightly_behind = 'Slightly Behind'
         major_issue = 'Major Issue'
+
     status = m.CharField(max_length=255, null=True, blank=True,
                          choices=Status.choices())
 

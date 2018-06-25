@@ -12,7 +12,7 @@ from rest_framework.permissions import (
 from .models import (
     EngagementPlan,
     EngagementPlanPerms,
-    EngagementListItem,
+    EngagementPlanItem,
     HCP,
     HCPObjective,
     HCPDeliverable,
