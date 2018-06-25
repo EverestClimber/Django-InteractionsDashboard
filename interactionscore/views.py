@@ -100,6 +100,10 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
 
         user = self.request.user
 
+        if self.action == 'create':
+            if user.has_interactions_perm('add_engagementplan'):
+                return  # allow
+
         if self.action in {'list', 'retrieve'}:  # restricted by get_queryset above
             return  # allow
 

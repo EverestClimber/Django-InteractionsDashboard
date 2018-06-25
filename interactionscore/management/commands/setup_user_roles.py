@@ -46,20 +46,23 @@ class Command(BaseCommand):
 
         self.stdout.write('Creating new Groups and Permissions...')
         for name, perm_opts in USER_ROLES.items():
-            group, _ = Group.objects.get_or_create(name='Role ' + name)
-            self.stdout.write('- created group ' + group.name)
+            group, created_group = Group.objects.get_or_create(name='Role ' + name)
+            if created_group:
+                self.stdout.write('- created group ' + group.name)
             for model_class, perm_opt in perm_opts:
+                perm_codename = perm_opt if type(perm_opt) is str else perm_opt.name
+                perm_name = perm_opt if type(perm_opt) is str else perm_opt.value
                 if options['create_new_permissions']:
-                    self.stdout.write('- creating permission {}: {}'.format(perm_opt.name,
-                                                                           perm_opt.value))
+                    self.stdout.write('- creating permission {}: {}'.format(perm_codename,
+                                                                            perm_name))
                     ct = ContentType.objects.get_for_model(model_class)
-                    perm = Permission.objects.create(codename=perm_opt.name,
-                                                     name=perm_opt.value,
+                    perm = Permission.objects.create(codename=perm_codename,
+                                                     name=perm_name,
                                                      content_type=ct)
                 else:
-                    perm = Permission.objects.get(codename=perm_opt.name)
+                    perm = Permission.objects.get(codename=perm_codename)
 
-                self.stdout.write('- adding permission {} to group {}'.format(perm.codename,
+                self.stdout.write('- adding permission {} to group {}'.format(perm_codename,
                                                                               group.name))
                 group.permissions.add(perm)
 
