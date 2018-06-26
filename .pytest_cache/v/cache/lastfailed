@@ -1,3 +1,6 @@
 {
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_create_engagement_plan": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_list_engagement_plans": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_update_engagement_plan": true,
   "interactionscore/tests/api/test_eps.py::TestProductList::test_2": true
 }

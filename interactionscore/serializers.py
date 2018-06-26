@@ -1,5 +1,6 @@
+from django.utils.text import camel_case_to_spaces
 from rest_framework import serializers
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from .models import (
     EngagementPlan,
     EngagementPlanItem,
@@ -16,19 +17,99 @@ from .models import (
 )
 
 
-def fix_nested_id_fields(validated_data):
-    """Used bc DRF sometimes puts *full objects* into _id fields.
-    """
-    r = {}
-    for f, v in validated_data.items():
-        if (
-            f.find('_id') == len(f) - 3 and  # f ends in _id
-            type(v) not in {int, str}
-        ):
-            r[f] = v.id
-        else:
-            r[f] = v
-    return r
+# def fix_nested_id_fields(validated_data):
+#     """Used bc DRF sometimes puts *full objects* into _id fields.
+#     """
+#     r = {}
+#     for f, v in validated_data.items():
+#         if (
+#             f.find('_id') == len(f) - 3 and  # f ends in _id
+#             type(v) not in {int, str}
+#         ):
+#             r[f] = v.id
+#         else:
+#             r[f] = v
+#     return r
+
+
+class NestedWritableFieldsSerializerMixin:
+    class Meta:
+        # expect nested_fields : {field_name: WritableSerializerClass}
+        # (just use an OrderedDict here if order matters)
+        nested_fields = {}
+
+    def create(self, validated_data):
+        nested_data = self._extract_nested_data(validated_data)
+
+        # default create
+        obj = super().create(validated_data)
+
+        # handle nested objects
+        parent_field_name = self._guess_parent_ref_field_name()
+        for field_name, nested_items_data in nested_data.items():
+            if nested_items_data is None:
+                continue
+            for item_data in nested_items_data:
+                item_data[parent_field_name] = obj.id
+                serializer_class = self.Meta.nested_fields[field_name]
+                serializer = serializer_class(data=item_data)
+                serializer.is_valid()
+                serializer.save()
+
+        return obj
+
+    def update(self, obj, validated_data):
+        nested_data = self._extract_nested_data(validated_data)
+
+        # default create
+        super().update(obj, validated_data)
+
+        # handle nested objects
+        parent_field_name = self._guess_parent_ref_field_name()
+        for field_name, nested_items_data in nested_data.items():
+            if nested_items_data is None:
+                continue
+
+            # delete items not present
+            getattr(obj, field_name).exclude(
+                id__in=(item_data['id']
+                        for item_data in nested_items_data
+                        if 'id' in item_data)
+            ).delete()
+
+            for item_data in nested_items_data:
+                serializer_class = self.Meta.nested_fields[field_name]
+                model_class = serializer_class.Meta.model
+                # update for those with id
+                if 'id' in item_data:
+                    serializer = serializer_class(
+                        model_class.objects.get(id=item_data['id']),
+                        item_data,
+                        partial=True)
+                    serializer.is_valid()
+                    serializer.save()
+                # crate those without id
+                else:
+                    item_data[parent_field_name] = obj.id
+                    serializer = serializer_class(data=item_data)
+                    serializer.is_valid()
+                    serializer.save()
+
+    def _extract_nested_data(self, validated_data):
+        """Extract nested data first so it doesn't break the regular process
+        """
+        nested_data = OrderedDict()
+        for field_name in self.Meta.nested_fields.keys():
+            nested_data[field_name] = validated_data.pop(field_name, None)
+        return nested_data
+
+    def _guess_parent_ref_field_name(self):
+        """Hacky way to "guess" parent class-referencing field name
+        """
+        parent_field_name = (
+            camel_case_to_spaces(self.Meta.model.__name__).replace(' ', '_') +
+            '_id')
+        return parent_field_name
 
 
 class AffiliateGroupSerializer(serializers.ModelSerializer):
@@ -56,6 +137,8 @@ class InteractionOutcomeSerializer(serializers.ModelSerializer):
 
 
 class ResourceSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField()
+
     class Meta:
         model = Resource
         fields = ('id', 'user_id', 'url', 'file')
@@ -77,35 +160,6 @@ class HCPSerializer(serializers.ModelSerializer):
         )
 
 
-# TODO: update this
-class EngagementPlanItemSerializer(serializers.ModelSerializer):
-    hcp = HCPSerializer(required=False, read_only=True)
-    hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
-    engagement_plan_id = serializers.PrimaryKeyRelatedField(
-        required=False, queryset=EngagementPlan.objects.all())  # read + write
-
-    class Meta:
-        model = EngagementPlanItem
-        fields = (
-            'id',
-            'hcp',
-            'hcp_id',
-            'approved',
-            'approved_at',
-            'created_at',
-            'updated_at',
-        )
-        extra_kwargs = {'id': {'read_only': False, 'required': False}}
-
-    def create(self, validated_data):
-        # TODO
-        pass
-
-    def update(self, instance, validated_data):
-        # TODO:
-        pass
-
-
 class HCPDeliverableSerializer(serializers.ModelSerializer):
     class Meta:
         model = HCPDeliverable
@@ -119,67 +173,112 @@ class HCPDeliverableSerializer(serializers.ModelSerializer):
 
 
 class HCPObjectiveSerializer(serializers.ModelSerializer):
-    hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
-    engagement_plan_item_id = serializers.PrimaryKeyRelatedField(
-        required=False, queryset=EngagementPlanItem.objects.all())  # read + write
+    # hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
+    # engagement_plan_item_id = serializers.PrimaryKeyRelatedField(
+    #     required=False, queryset=EngagementPlanItem.objects.all())  # read + write
+
+    hcp_id = serializers.IntegerField()
+    engagement_plan_item_id = serializers.IntegerField()
+
     deliverables = HCPDeliverableSerializer(many=True)
 
     class Meta:
         model = HCPObjective
         fields = (
             'id',
-            'engagement_plan_id',
+            'engagement_plan_item_id',
             'hcp_id',
             'description',
             'approved',
             'approved_at',
             'deliverables',
-            # 'comments',
             'created_at',
             'updated_at',
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
+        nested_fields = {
+            'deliverables': HCPDeliverableSerializer,
+        }
+
+    # def create(self, validated_data):
+    #     deliverables = validated_data.pop('deliverables', None)
+    #
+    #     validated_data = fix_nested_id_fields(validated_data)
+    #
+    #     # super call to properly handle m2m rels
+    #     obj = super().create(validated_data)
+    #
+    #     # deliverables nested
+    #     #########################################
+    #     if deliverables is not None:
+    #         for deliverable_data in deliverables:
+    #             # create directly bc there are no writable nested fields under this
+    #             obj.deliverables.create(**deliverable_data)
+    #
+    #     return obj
+    #
+    # def update(self, instance, validated_data):
+    #     deliverables = validated_data.pop('deliverables', None)
+    #     validated_data = fix_nested_id_fields(validated_data)
+    #
+    #     super().update(instance, validated_data)
+    #
+    #     # deliverables nested
+    #     #########################################
+    #     if deliverables is not None:
+    #         # delete items not present
+    #         instance.deliverables.exclude(
+    #             id__in=(deliverable_data['id']
+    #                     for deliverable_data in deliverables
+    #                     if 'id' in deliverable_data)
+    #         ).delete()
+    #         for deliverable_data in deliverables:
+    #             if 'id' in deliverable_data:  # update existing if with id
+    #                 instance.deliverables.filter(id=deliverable_data['id'])\
+    #                     .update(**deliverable_data)
+    #             else:  # create new if without id
+    #                 instance.deliverables.create(**deliverable_data)
+    #
+    #     return instance
+
+
+# TODO: update this
+class EngagementPlanItemSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
+    hcp = HCPSerializer(required=False, read_only=True)
+
+    hcp_objectives = HCPObjectiveSerializer(many=True)
+
+    # hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
+    # engagement_plan_id = serializers.PrimaryKeyRelatedField(
+    #     required=False, queryset=EngagementPlan.objects.all())  # read + write
+
+    hcp_id = serializers.IntegerField()
+    engagement_plan_id = serializers.IntegerField()
+
+    class Meta:
+        model = EngagementPlanItem
+        fields = (
+            'id',
+            'hcp',
+            'hcp_id',
+            'approved',
+            'approved_at',
+            'created_at',
+            'updated_at',
+            'hcp_objectives'
+        )
+        extra_kwargs = {'id': {'read_only': False, 'required': False}}
+        nested_fields = {
+            'hcp_objectives': HCPObjectiveSerializer,
+        }
 
     def create(self, validated_data):
-        deliverables = validated_data.pop('deliverables', None)
-
-        validated_data = fix_nested_id_fields(validated_data)
-
-        # super call to properly handle m2m rels
-        obj = super().create(validated_data)
-
-        # deliverables nested
-        #########################################
-        if deliverables is not None:
-            for deliverable_data in deliverables:
-                # create directly bc there are no writable nested fields under this
-                obj.deliverables.create(**deliverable_data)
-
-        return obj
+        # TODO
+        pass
 
     def update(self, instance, validated_data):
-        deliverables = validated_data.pop('deliverables', None)
-        validated_data = fix_nested_id_fields(validated_data)
-
-        super().update(instance, validated_data)
-
-        # deliverables nested
-        #########################################
-        if deliverables is not None:
-            # delete items not present
-            instance.deliverables.exclude(
-                id__in=(deliverable_data['id']
-                        for deliverable_data in deliverables
-                        if 'id' in deliverable_data)
-            ).delete()
-            for deliverable_data in deliverables:
-                if 'id' in deliverable_data:  # update existing if with id
-                    instance.deliverables.filter(id=deliverable_data['id'])\
-                        .update(**deliverable_data)
-                else:  # create new if without id
-                    instance.deliverables.create(**deliverable_data)
-
-        return instance
+        # TODO:
+        pass
 
 
 class EngagementPlanSerializer(serializers.ModelSerializer):
@@ -205,9 +304,9 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         )
-        # nested_update_fields = {
-        #     'engagement_plan_items': EngagementPlanItemSerializer,
-        # }
+        nested_fields = {
+            'engagement_plan_items': EngagementPlanItemSerializer,
+        }
 
     # def validate(self, data):
     #     # validate there aren't multiple items referencing same hcp
@@ -234,121 +333,121 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
     #
     #     return data
 
-    def create(self, validated_data):
-        # set user to current user unless user is admin
-        user = self.context['request'].user
-        if not user.is_staff and not user.is_superuser:
-            validated_data['user'] = user
+    # def create(self, validated_data):
+    #     # set user to current user unless user is admin
+    #     user = self.context['request'].user
+    #     if not user.is_staff and not user.is_superuser:
+    #         validated_data['user'] = user
+    #
+    #     engagement_list_items = validated_data.pop('engagement_list_items', None)
+    #     # hcp_objectives = validated_data.pop('hcp_objectives', None)
+    #
+    #     # call super so it also does right thing for m2m rels
+    #     eplan = super().create(validated_data)
+    #
+    #     # engagement_list_items nested
+    #     #########################################
+    #     if engagement_list_items is not None:
+    #         for elitem_data in engagement_list_items:
+    #             # # create directly bc there are no writable nested fields under this
+    #             # elitem_data = fix_nested_id_fields(elitem_data)
+    #             # eplan.engagement_list_items.create(**elitem_data)
+    #
+    #             elitem_data['engagement_plan_id'] = eplan.id
+    #             elitem_data = fix_nested_id_fields(elitem_data)
+    #             elitem_serializer = EngagementPlanItemSerializer(data=elitem_data)
+    #             elitem_serializer.is_valid()
+    #             elitem_serializer.save()
+    #
+    #     # # hcp_objectives nested
+    #     # #########################################
+    #     # if hcp_objectives is not None:
+    #     #     for hcp_obj_data in hcp_objectives:
+    #     #         # use child serializer bc there are deeper level nestings
+    #     #         hcp_obj_data['engagement_plan_id'] = eplan.id
+    #     #         hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
+    #     #         hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
+    #     #         hcp_obj_serializer.is_valid()
+    #     #         hcp_obj_serializer.save()
+    #
+    #     return eplan
 
-        engagement_list_items = validated_data.pop('engagement_list_items', None)
-        # hcp_objectives = validated_data.pop('hcp_objectives', None)
-
-        # call super so it also does right thing for m2m rels
-        eplan = super().create(validated_data)
-
-        # engagement_list_items nested
-        #########################################
-        if engagement_list_items is not None:
-            for elitem_data in engagement_list_items:
-                # # create directly bc there are no writable nested fields under this
-                # elitem_data = fix_nested_id_fields(elitem_data)
-                # eplan.engagement_list_items.create(**elitem_data)
-
-                elitem_data['engagement_plan_id'] = eplan.id
-                elitem_data = fix_nested_id_fields(elitem_data)
-                elitem_serializer = EngagementPlanItemSerializer(data=elitem_data)
-                elitem_serializer.is_valid()
-                elitem_serializer.save()
-
-        # # hcp_objectives nested
-        # #########################################
-        # if hcp_objectives is not None:
-        #     for hcp_obj_data in hcp_objectives:
-        #         # use child serializer bc there are deeper level nestings
-        #         hcp_obj_data['engagement_plan_id'] = eplan.id
-        #         hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
-        #         hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
-        #         hcp_obj_serializer.is_valid()
-        #         hcp_obj_serializer.save()
-
-        return eplan
-
-    def update(self, eplan, validated_data):
-        engagement_list_items = validated_data.pop('engagement_list_items', None)
-        hcp_objectives = validated_data.pop('hcp_objectives', None)
-
-        super().update(eplan, validated_data)
-
-        # engagement_list_items nested
-        #########################################
-        hcp_ids_for_deleted_items = set()
-        if engagement_list_items is not None:
-            # delete items not present
-            elitems_to_delete = eplan.engagement_list_items.exclude(
-                id__in=(elitem_data['id']
-                        for elitem_data in engagement_list_items
-                        if 'id' in elitem_data)
-            )
-            hcp_ids_for_deleted_items = set(
-                elitem.hcp_id for elitem in elitems_to_delete
-            )
-            elitems_to_delete.delete()
-
-            for elitem_data in engagement_list_items:
-                elitem_data = fix_nested_id_fields(elitem_data)
-                if 'id' in elitem_data:  # update existing if with id
-                    # eplan.engagement_list_items.filter(id=elitem_data['id'])\
-                    #     .update(**elitem_data)
-
-                    elitem_serializer = EngagementPlanItemSerializer(
-                        EngagementPlanItem.objects.get(id=elitem_data['id']),
-                        elitem_data,
-                        partial=True
-                    )
-                    elitem_serializer.is_valid()
-                    elitem_serializer.save()
-
-                else:  # create new if without id
-                    # eplan.engagement_list_items.create(**elitem_data)
-
-                    elitem_data['engagement_plan_id'] = eplan.id
-                    elitem_data = fix_nested_id_fields(elitem_data)
-                    elitem_serializer = EngagementPlanItemSerializer(data=elitem_data)
-                    elitem_serializer.is_valid()
-                    elitem_serializer.save()
-
-        # # hcp_objectives nested
-        # #########################################
-        # if hcp_objectives is not None:
-        #     # delete objs not present
-        #     eplan.hcp_objectives.exclude(
-        #         id__in=(hcp_obj_data['id']
-        #                 for hcp_obj_data in hcp_objectives
-        #                 if 'id' in hcp_obj_data)
-        #     ).delete()
-        #
-        #     # delete objs referenced by deleted elitems
-        #     eplan.hcp_objectives.filter(hcp_id__in=hcp_ids_for_deleted_items).delete()
-        #
-        #     for hcp_obj_data in hcp_objectives:
-        #         hcp_obj_data['engagement_plan_id'] = eplan.id
-        #         hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
-        #
-        #         if 'id' in hcp_obj_data:  # update existing if with id
-        #             hcp_obj_serializer = HCPObjectiveSerializer(
-        #                 HCPObjective.objects.get(id=hcp_obj_data['id']),
-        #                 hcp_obj_data,
-        #                 partial=True
-        #             )
-        #             hcp_obj_serializer.is_valid()
-        #             hcp_obj_serializer.save()
-        #
-        #         else:  # create new if without id
-        #             hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
-        #             hcp_obj_serializer.is_valid()
-        #             hcp_obj_serializer.save()
-
-        return eplan
+    # def update(self, eplan, validated_data):
+    #     engagement_list_items = validated_data.pop('engagement_list_items', None)
+    #     hcp_objectives = validated_data.pop('hcp_objectives', None)
+    #
+    #     super().update(eplan, validated_data)
+    #
+    #     # engagement_list_items nested
+    #     #########################################
+    #     hcp_ids_for_deleted_items = set()
+    #     if engagement_list_items is not None:
+    #         # delete items not present
+    #         elitems_to_delete = eplan.engagement_list_items.exclude(
+    #             id__in=(elitem_data['id']
+    #                     for elitem_data in engagement_list_items
+    #                     if 'id' in elitem_data)
+    #         )
+    #         hcp_ids_for_deleted_items = set(
+    #             elitem.hcp_id for elitem in elitems_to_delete
+    #         )
+    #         elitems_to_delete.delete()
+    #
+    #         for elitem_data in engagement_list_items:
+    #             elitem_data = fix_nested_id_fields(elitem_data)
+    #             if 'id' in elitem_data:  # update existing if with id
+    #                 # eplan.engagement_list_items.filter(id=elitem_data['id'])\
+    #                 #     .update(**elitem_data)
+    #
+    #                 elitem_serializer = EngagementPlanItemSerializer(
+    #                     EngagementPlanItem.objects.get(id=elitem_data['id']),
+    #                     elitem_data,
+    #                     partial=True
+    #                 )
+    #                 elitem_serializer.is_valid()
+    #                 elitem_serializer.save()
+    #
+    #             else:  # create new if without id
+    #                 # eplan.engagement_list_items.create(**elitem_data)
+    #
+    #                 elitem_data['engagement_plan_id'] = eplan.id
+    #                 elitem_data = fix_nested_id_fields(elitem_data)
+    #                 elitem_serializer = EngagementPlanItemSerializer(data=elitem_data)
+    #                 elitem_serializer.is_valid()
+    #                 elitem_serializer.save()
+    #
+    #     # # hcp_objectives nested
+    #     # #########################################
+    #     # if hcp_objectives is not None:
+    #     #     # delete objs not present
+    #     #     eplan.hcp_objectives.exclude(
+    #     #         id__in=(hcp_obj_data['id']
+    #     #                 for hcp_obj_data in hcp_objectives
+    #     #                 if 'id' in hcp_obj_data)
+    #     #     ).delete()
+    #     #
+    #     #     # delete objs referenced by deleted elitems
+    #     #     eplan.hcp_objectives.filter(hcp_id__in=hcp_ids_for_deleted_items).delete()
+    #     #
+    #     #     for hcp_obj_data in hcp_objectives:
+    #     #         hcp_obj_data['engagement_plan_id'] = eplan.id
+    #     #         hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
+    #     #
+    #     #         if 'id' in hcp_obj_data:  # update existing if with id
+    #     #             hcp_obj_serializer = HCPObjectiveSerializer(
+    #     #                 HCPObjective.objects.get(id=hcp_obj_data['id']),
+    #     #                 hcp_obj_data,
+    #     #                 partial=True
+    #     #             )
+    #     #             hcp_obj_serializer.is_valid()
+    #     #             hcp_obj_serializer.save()
+    #     #
+    #     #         else:  # create new if without id
+    #     #             hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
+    #     #             hcp_obj_serializer.is_valid()
+    #     #             hcp_obj_serializer.save()
+    #
+    #     return eplan
 
 
 class InteractionSerializer(serializers.ModelSerializer):

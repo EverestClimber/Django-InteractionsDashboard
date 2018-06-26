@@ -30,8 +30,8 @@ class TestInteractionsAPI(BaseAPITestCase):
         assert len(rdata) == 1
 
     def test_create_interaction(self):
-        hcp_obj = self.ep1.hcp_objectives.get(hcp=self.hcp1,
-                                              description='hcp 1 obj desc')
+        hcp_obj = self.ep1.items.get(hcp=self.hcp1)\
+            .hcp_objectives.get(description='hcp 1 obj desc')
         data = {
             'hcp_id': self.hcp1.id,
             'description': 'interaction between MSL1 and HCP1',
