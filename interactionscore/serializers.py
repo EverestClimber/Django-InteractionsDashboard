@@ -3,8 +3,10 @@ from rest_framework import serializers
 from collections import defaultdict, OrderedDict
 from .models import (
     EngagementPlan,
-    EngagementPlanItem,
+    EngagementPlanHCPItem,
+    EngagementPlanProjectItem,
     HCP,
+    Project,
     HCPObjective,
     HCPDeliverable,
     AffiliateGroup,
@@ -242,8 +244,7 @@ class HCPObjectiveSerializer(serializers.ModelSerializer):
     #     return instance
 
 
-# TODO: update this
-class EngagementPlanItemSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
+class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
     hcp = HCPSerializer(required=False, read_only=True)
 
     hcp_objectives = HCPObjectiveSerializer(many=True)
@@ -256,7 +257,7 @@ class EngagementPlanItemSerializer(NestedWritableFieldsSerializerMixin, serializ
     engagement_plan_id = serializers.IntegerField()
 
     class Meta:
-        model = EngagementPlanItem
+        model = EngagementPlanHCPItem
         fields = (
             'id',
             'hcp',
@@ -265,25 +266,41 @@ class EngagementPlanItemSerializer(NestedWritableFieldsSerializerMixin, serializ
             'approved_at',
             'created_at',
             'updated_at',
-            'hcp_objectives'
+            'objectives'
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
         nested_fields = {
-            'hcp_objectives': HCPObjectiveSerializer,
+            'objectives': HCPObjectiveSerializer,
         }
 
-    def create(self, validated_data):
-        # TODO
-        pass
 
-    def update(self, instance, validated_data):
-        # TODO:
-        pass
+class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
+    hcp = HCPSerializer(required=False, read_only=True)
+    hcp_id = serializers.IntegerField()
+    engagement_plan_id = serializers.IntegerField()
+    hcp_objectives = HCPObjectiveSerializer(many=True)
+
+    class Meta:
+        model = EngagementPlanProjectItem
+        fields = (
+            'id',
+            'hcp',
+            'hcp_id',
+            'approved',
+            'approved_at',
+            'created_at',
+            'updated_at',
+            'objectives'
+        )
+        extra_kwargs = {'id': {'read_only': False, 'required': False}}
+        nested_fields = {
+            'objectives': HCPObjectiveSerializer,
+        }
 
 
 class EngagementPlanSerializer(serializers.ModelSerializer):
-    engagement_plan_items = EngagementPlanItemSerializer(many=True)
-    hcp_objectives = HCPObjectiveSerializer(many=True)
+    hcp_items = EngagementPlanHCPItemSerializer(many=True)
+    project_items = EngagementPlanProjectItemItemSerializer(many=True)
 
     class Meta:
         model = EngagementPlan
@@ -293,8 +310,8 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'year',
             'approved',
             'approved_at',
-            'engagement_plan_items',
-            'hcp_objectives',
+            'hcp_items',
+            'project_items',
             'created_at',
             'updated_at',
         )
@@ -305,149 +322,9 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'updated_at',
         )
         nested_fields = {
-            'engagement_plan_items': EngagementPlanItemSerializer,
+            'hcp_items': EngagementPlanHCPItemSerializer,
+            'project_items': EngagementPlanProjectItemItemSerializer,
         }
-
-    # def validate(self, data):
-    #     # validate there aren't multiple items referencing same hcp
-    #     engagement_list_items = data.get('engagement_list_items', [])
-    #     items_for_hcp = defaultdict(int)
-    #     for elitem_data in engagement_list_items:
-    #         if 'hcp_id' in elitem_data:
-    #             items_for_hcp[
-    #                 elitem_data['hcp_id']
-    #                 if type(elitem_data['hcp_id']) is str
-    #                 else elitem_data['hcp_id'].id
-    #             ] += 1
-    #     multiple_referenced_hcp_ids = [
-    #         hcp_id for hcp_id, n in items_for_hcp.items()
-    #         if n > 1
-    #     ]
-    #     if multiple_referenced_hcp_ids:
-    #         msg = (
-    #             "Some HCPs are referenced multiple time in engagement_list_items" +
-    #             " which is not allowed. IDs of multiply referenced HCPs: " +
-    #             ", ".join(map(str, multiple_referenced_hcp_ids))
-    #         )
-    #         raise serializers.ValidationError(msg)
-    #
-    #     return data
-
-    # def create(self, validated_data):
-    #     # set user to current user unless user is admin
-    #     user = self.context['request'].user
-    #     if not user.is_staff and not user.is_superuser:
-    #         validated_data['user'] = user
-    #
-    #     engagement_list_items = validated_data.pop('engagement_list_items', None)
-    #     # hcp_objectives = validated_data.pop('hcp_objectives', None)
-    #
-    #     # call super so it also does right thing for m2m rels
-    #     eplan = super().create(validated_data)
-    #
-    #     # engagement_list_items nested
-    #     #########################################
-    #     if engagement_list_items is not None:
-    #         for elitem_data in engagement_list_items:
-    #             # # create directly bc there are no writable nested fields under this
-    #             # elitem_data = fix_nested_id_fields(elitem_data)
-    #             # eplan.engagement_list_items.create(**elitem_data)
-    #
-    #             elitem_data['engagement_plan_id'] = eplan.id
-    #             elitem_data = fix_nested_id_fields(elitem_data)
-    #             elitem_serializer = EngagementPlanItemSerializer(data=elitem_data)
-    #             elitem_serializer.is_valid()
-    #             elitem_serializer.save()
-    #
-    #     # # hcp_objectives nested
-    #     # #########################################
-    #     # if hcp_objectives is not None:
-    #     #     for hcp_obj_data in hcp_objectives:
-    #     #         # use child serializer bc there are deeper level nestings
-    #     #         hcp_obj_data['engagement_plan_id'] = eplan.id
-    #     #         hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
-    #     #         hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
-    #     #         hcp_obj_serializer.is_valid()
-    #     #         hcp_obj_serializer.save()
-    #
-    #     return eplan
-
-    # def update(self, eplan, validated_data):
-    #     engagement_list_items = validated_data.pop('engagement_list_items', None)
-    #     hcp_objectives = validated_data.pop('hcp_objectives', None)
-    #
-    #     super().update(eplan, validated_data)
-    #
-    #     # engagement_list_items nested
-    #     #########################################
-    #     hcp_ids_for_deleted_items = set()
-    #     if engagement_list_items is not None:
-    #         # delete items not present
-    #         elitems_to_delete = eplan.engagement_list_items.exclude(
-    #             id__in=(elitem_data['id']
-    #                     for elitem_data in engagement_list_items
-    #                     if 'id' in elitem_data)
-    #         )
-    #         hcp_ids_for_deleted_items = set(
-    #             elitem.hcp_id for elitem in elitems_to_delete
-    #         )
-    #         elitems_to_delete.delete()
-    #
-    #         for elitem_data in engagement_list_items:
-    #             elitem_data = fix_nested_id_fields(elitem_data)
-    #             if 'id' in elitem_data:  # update existing if with id
-    #                 # eplan.engagement_list_items.filter(id=elitem_data['id'])\
-    #                 #     .update(**elitem_data)
-    #
-    #                 elitem_serializer = EngagementPlanItemSerializer(
-    #                     EngagementPlanItem.objects.get(id=elitem_data['id']),
-    #                     elitem_data,
-    #                     partial=True
-    #                 )
-    #                 elitem_serializer.is_valid()
-    #                 elitem_serializer.save()
-    #
-    #             else:  # create new if without id
-    #                 # eplan.engagement_list_items.create(**elitem_data)
-    #
-    #                 elitem_data['engagement_plan_id'] = eplan.id
-    #                 elitem_data = fix_nested_id_fields(elitem_data)
-    #                 elitem_serializer = EngagementPlanItemSerializer(data=elitem_data)
-    #                 elitem_serializer.is_valid()
-    #                 elitem_serializer.save()
-    #
-    #     # # hcp_objectives nested
-    #     # #########################################
-    #     # if hcp_objectives is not None:
-    #     #     # delete objs not present
-    #     #     eplan.hcp_objectives.exclude(
-    #     #         id__in=(hcp_obj_data['id']
-    #     #                 for hcp_obj_data in hcp_objectives
-    #     #                 if 'id' in hcp_obj_data)
-    #     #     ).delete()
-    #     #
-    #     #     # delete objs referenced by deleted elitems
-    #     #     eplan.hcp_objectives.filter(hcp_id__in=hcp_ids_for_deleted_items).delete()
-    #     #
-    #     #     for hcp_obj_data in hcp_objectives:
-    #     #         hcp_obj_data['engagement_plan_id'] = eplan.id
-    #     #         hcp_obj_data = fix_nested_id_fields(hcp_obj_data)
-    #     #
-    #     #         if 'id' in hcp_obj_data:  # update existing if with id
-    #     #             hcp_obj_serializer = HCPObjectiveSerializer(
-    #     #                 HCPObjective.objects.get(id=hcp_obj_data['id']),
-    #     #                 hcp_obj_data,
-    #     #                 partial=True
-    #     #             )
-    #     #             hcp_obj_serializer.is_valid()
-    #     #             hcp_obj_serializer.save()
-    #     #
-    #     #         else:  # create new if without id
-    #     #             hcp_obj_serializer = HCPObjectiveSerializer(data=hcp_obj_data)
-    #     #             hcp_obj_serializer.is_valid()
-    #     #             hcp_obj_serializer.save()
-    #
-    #     return eplan
 
 
 class InteractionSerializer(serializers.ModelSerializer):

@@ -11,6 +11,7 @@ from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
 from interactions.helpers import ChoiceEnum
 
+
 # Core Business Logic Models
 #####################################################################
 
@@ -54,7 +55,6 @@ class AffiliateGroup(TimestampedModel, SafeDeleteModel):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
-# TODO: rel to objective
 class Comment(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
@@ -62,9 +62,12 @@ class Comment(TimestampedModel, SafeDeleteModel):
     engagement_plan = m.ForeignKey('EngagementPlan', on_delete=m.CASCADE,
                                    null=True, blank=True,
                                    related_name='comments')
-    engagement_plan_item = m.ForeignKey('EngagementPlanItem', on_delete=m.CASCADE,
-                                        null=True, blank=True,
-                                        related_name='comments')
+    engagement_plan_hcp_item = m.ForeignKey('EngagementPlanHCPItem', on_delete=m.CASCADE,
+                                            null=True, blank=True,
+                                            related_name='comments')
+    engagement_plan_project_item = m.ForeignKey('EngagementPlanProjectItem', on_delete=m.CASCADE,
+                                                null=True, blank=True,
+                                                related_name='comments')
     message = m.TextField()
 
     def __str__(self):
@@ -96,7 +99,8 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
     class Meta:
         permissions = EngagementPlanPerms.choices()
 
-    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True)
+    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True,
+                        related_name='engagement_plans')
 
     year = m.DateField(blank=True, default=datetime.date.today)
 
@@ -105,41 +109,83 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
                                 self.year.year)
 
 
-class EngagementPlanItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
+class EngagementPlanHCPItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
-                                   related_name='items')
+                                   related_name='hcp_items')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+
+
+class EngagementPlanProjectItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
+    engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
+                                   null=True,
+                                   related_name='project_items')
+    project = m.ForeignKey('Project', on_delete=m.CASCADE)
 
 
 class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
-    engagement_plan_item = m.ForeignKey(EngagementPlanItem, on_delete=m.CASCADE,
-                                        related_name='hcp_objectives')
+    engagement_plan_item = m.ForeignKey(EngagementPlanHCPItem, on_delete=m.CASCADE,
+                                        null=True,
+                                        related_name='objectives')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
     description = m.TextField()
+
+
+class ProjectObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
+    engagement_plan_item = m.ForeignKey(EngagementPlanProjectItem, on_delete=m.CASCADE,
+                                        related_name='objectives')
+    hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+
+    description = m.TextField()
+
+
+QUARTERS_CHOICES = (
+    (1, 'Q1'),
+    (2, 'Q2'),
+    (3, 'Q3'),
+    (4, 'Q4'),
+)
 
 
 class HCPDeliverable(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
     class Meta:
-        unique_together = (('quarter', 'hcp_objective'),)
+        unique_together = (('quarter', 'objective'),)
 
-    hcp_objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE,
-                                 related_name='deliverables')
+    objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE,
+                             related_name='deliverables')
 
-    QUARTERS_CHOICES = (
-        (1, 'Q1'),
-        (2, 'Q2'),
-        (3, 'Q3'),
-        (4, 'Q4'),
-    )
     quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
+    description = m.CharField(max_length=255, blank=True)
 
+    class Status(ChoiceEnum):
+        on_track = 'On Track'
+        slightly_behind = 'Slightly Behind'
+        major_issue = 'Major Issue'
+
+    status = m.CharField(max_length=255, null=True, blank=True,
+                         choices=Status.choices())
+
+
+class ProjectDeliverable(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
+    class Meta:
+        unique_together = (('quarter', 'objective'),)
+
+    objective = m.ForeignKey(ProjectObjective, on_delete=m.CASCADE,
+                             related_name='deliverables')
+
+    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
     description = m.CharField(max_length=255, blank=True)
 
     class Status(ChoiceEnum):

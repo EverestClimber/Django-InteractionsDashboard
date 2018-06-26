@@ -12,10 +12,14 @@ from .models import (
     AffiliateGroup,
     TherapeuticArea,
     Comment,
+    Project,
     EngagementPlan,
-    EngagementPlanItem,
+    EngagementPlanHCPItem,
+    EngagementPlanProjectItem,
     HCPObjective,
     HCPDeliverable,
+    ProjectObjective,
+    ProjectDeliverable,
     HCP,
     User,
 )
@@ -39,6 +43,13 @@ class TherapeuticAreaAdmin(SafeDeleteAdmin):
     list_filter = SafeDeleteAdmin.list_filter
 
 
+@admin.register(Project)
+class ProjectAreaAdmin(SafeDeleteAdmin):
+    model = Project
+    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
+
+
 @admin.register(Comment)
 class CommentAdmin(SafeDeleteAdmin):
     model = Comment
@@ -50,6 +61,21 @@ class CommentInline(nested_admin.NestedStackedInline):
     model = Comment
     fields = ('user', 'message')
     extra = 0
+
+
+class ProjectDeliverableInline(nested_admin.NestedTabularInline):
+    model = ProjectDeliverable
+    fields = ('quarter', 'description')
+    extra = 0
+
+
+class ProjectObjectiveInline(nested_admin.NestedStackedInline):
+    model = HCPObjective
+    fields = ('hcp', 'description', 'approved',)
+    extra = 0
+    inlines = (
+        ProjectDeliverableInline,
+    )
 
 
 class HCPDeliverableInline(nested_admin.NestedTabularInline):
@@ -67,9 +93,16 @@ class HCPObjectiveInline(nested_admin.NestedStackedInline):
     )
 
 
-class EngagementPlanItemInline(nested_admin.NestedStackedInline):
-    model = EngagementPlanItem
+class EngagementPlanHCPItemInline(nested_admin.NestedStackedInline):
+    model = EngagementPlanHCPItem
     fields = ('hcp', 'approved',)
+    extra = 0
+    inlines = (HCPObjectiveInline, CommentInline)
+
+
+class EngagementPlanProjectItemInline(nested_admin.NestedStackedInline):
+    model = EngagementPlanProjectItem
+    fields = ('project',)
     extra = 0
     inlines = (HCPObjectiveInline, CommentInline)
 
@@ -112,7 +145,8 @@ class EngagementPlanAdmin(nested_admin.NestedModelAdmin, SafeDeleteAdmin):
     readonly_fields = ('created_at', 'updated_at', 'approved')
     actions = (action_engagement_plans_approve, action_engagement_plans_undo_approval)
     inlines = (
-        EngagementPlanItemInline,
+        EngagementPlanHCPItemInline,
+        EngagementPlanProjectItemInline,
     )
     list_filter = ("approved", "user", "year") + SafeDeleteAdmin.list_filter
 
