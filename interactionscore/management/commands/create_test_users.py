@@ -10,20 +10,20 @@ from interactionscore.models import AffiliateGroup, TherapeuticArea
 User = get_user_model()
 
 
-USERS_DATA = {
+USERS_DATA = [
     {'email': 'msl.1@test.com',
-     'roles': ['Role MSL']},
+     'groups': ['Role MSL']},
     {'email': 'msl.2@test.com',
-     'roles': ['Role MSL']},
+     'groups': ['Role MSL']},
     {'email': 'msl.3@test.com',
-     'roles': ['Role MSL']},
+     'groups': ['Role MSL']},
     {'email': 'man.a@test.com',
-     'roles': ['Role MSL Manager']},
+     'groups': ['Role MSL Manager']},
     {'email': 'man.b@test.com',
-     'roles': ['Role MSL Manager']},
+     'groups': ['Role MSL Manager']},
     {'email': 'man.c@test.com',
-     'roles': ['Role MSL Manager']},
-}
+     'groups': ['Role MSL Manager']},
+]
 
 
 class Command(BaseCommand):
@@ -33,8 +33,8 @@ class Command(BaseCommand):
         self.create_test_users(USERS_DATA)
         self.stdout.write(self.style.SUCCESS('...done!'))
 
-    def create_test_users(self, data):
-        for data in data:
+    def create_test_users(self, users_data):
+        for data in users_data:
             group_names = data.pop('groups', [])
             tas = data.pop('tas', [])
             affiliate_groups = data.pop('affiliate_groups', [])

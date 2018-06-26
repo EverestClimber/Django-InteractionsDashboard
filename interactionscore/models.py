@@ -56,7 +56,7 @@ class AffiliateGroup(TimestampedModel, SafeDeleteModel):
 
 
 class Comment(TimestampedModel, SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
+    _safedelete_policy = SOFT_DELETE
 
     user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True)
     engagement_plan = m.ForeignKey('EngagementPlan', on_delete=m.CASCADE,
@@ -99,7 +99,7 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
     class Meta:
         permissions = EngagementPlanPerms.choices()
 
-    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True,
+    user = m.ForeignKey('User', on_delete=m.CASCADE,
                         related_name='engagement_plans')
 
     year = m.DateField(blank=True, default=datetime.date.today)
@@ -121,7 +121,6 @@ class EngagementPlanProjectItem(TimestampedModel, ApprovableModel, SafeDeleteMod
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
-                                   null=True,
                                    related_name='project_items')
     project = m.ForeignKey('Project', on_delete=m.CASCADE)
 
@@ -130,7 +129,6 @@ class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan_item = m.ForeignKey(EngagementPlanHCPItem, on_delete=m.CASCADE,
-                                        null=True,
                                         related_name='objectives')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
@@ -232,10 +230,13 @@ class Interaction(TimestampedModel, SafeDeleteModel):
         option2 = 'Option #3'
         other = 'Other'
 
-    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True,
+    # TODO: investigate behavior on soft-deleting User and HCP
+    # (also considering that HCP does not have safe delete set to be cascading)
+
+    user = m.ForeignKey('User', on_delete=m.CASCADE,
                         # limit_choices_to={'groups__name': 'Role MSL'},
                         verbose_name='MSL')
-    hcp = m.ForeignKey('HCP', on_delete=m.SET_NULL, null=True)
+    hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
     hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True)
     project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True)
     resources = m.ManyToManyField('Resource', blank=True, related_name='interactions')
