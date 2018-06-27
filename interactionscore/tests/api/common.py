@@ -38,6 +38,11 @@ class BaseAPITestCase(APITestCase):
         cls.ag1 = AffiliateGroup.objects.create(name='Affiliate Group 1')
         cls.ag2 = AffiliateGroup.objects.create(name='Affiliate Group 2')
 
+        # projects
+        cls.proj1 = Project.objects.create(name='project 1')
+        cls.proj2 = Project.objects.create(name='project 2')
+        cls.proj2 = Project.objects.create(name='project 3')
+
         # create users
         cls.superuser = User.objects.create_superuser(
             email='superuser@test.com', password='secret')
@@ -73,31 +78,50 @@ class BaseAPITestCase(APITestCase):
         cls.hcp3 = HCP.objects.create(email='hcp.3@test.com')
 
         # engagement plans
+        #################################################
+
+        # EP1
         cls.ep1 = EngagementPlan.objects.create(
             user=cls.user_msl1,
             year='2018-01-01'
         )
-        ep1_item1 = cls.ep1.items.create(hcp=cls.hcp1)
-        ep1_item2 = cls.ep1.items.create(hcp=cls.hcp2)
+        # HCP items
+        ep1_hcp_item1 = cls.ep1.hcp_items.create(hcp=cls.hcp1)
+        ep1_hcp_item1_obj1 = ep1_hcp_item1.objectives.create(
+            hcp=cls.hcp1, description='hcp 1 obj 1 desc')
+        ep1_hcp_item1_obj1.deliverables.create(quarter=1, description='q1 deliverable desc')
+        ep1_hcp_item1_obj1.deliverables.create(quarter=2, description='q2 deliverable desc')
+        ep1_hcp_item1_obj1.deliverables.create(quarter=3, description='q3 deliverable desc')
+        ep1_hcp_item1_obj2 = ep1_hcp_item1.objectives.create(
+            hcp=cls.hcp1, description='hcp 1 obj 2 desc')
+        ep1_hcp_item1_obj2.deliverables.create(quarter=1, description='q1 deliverable desc')
+        ep1_hcp_item1_obj2.deliverables.create(quarter=2, description='q2 deliverable desc')
+        ep1_hcp_item1_obj2.deliverables.create(quarter=3, description='q3 deliverable desc')
+        ep1_hcp_item1_obj2.deliverables.create(quarter=4, description='q4 deliverable desc')
+        ep1_hcp_item2 = cls.ep1.hcp_items.create(hcp=cls.hcp2)
+        ep1_hcp_item2_obj = ep1_hcp_item2.objectives.create(
+            hcp=cls.hcp2, description='hcp 2 obj desc')
+        ep1_hcp_item2_obj.deliverables.create(quarter=2, description='q2 deliverable desc')
+        ep1_hcp_item2_obj.deliverables.create(quarter=3, description='q3 deliverable desc')
+        # Project items
+        ep1_proj_item1 = cls.ep1.project_items.create(project=cls.proj1)
+        ep1_proj_item1_obj1 = ep1_proj_item1.objectives.create(
+            project=cls.proj1, description='proj 1 obj 1 desc')
+        ep1_proj_item1_obj1.deliverables.create(quarter=1, description='q1 deliverable desc')
+        ep1_proj_item1_obj1.deliverables.create(quarter=2, description='q2 deliverable desc')
+        ep1_proj_item1_obj1.deliverables.create(quarter=3, description='q3 deliverable desc')
+        ep1_proj_item1_obj2 = ep1_proj_item1.objectives.create(
+            project=cls.proj1, description='proj 1 obj 2 desc')
+        ep1_proj_item1_obj2.deliverables.create(quarter=1, description='q1 deliverable desc')
+        ep1_proj_item1_obj2.deliverables.create(quarter=2, description='q2 deliverable desc')
+        ep1_proj_item1_obj2.deliverables.create(quarter=3, description='q3 deliverable desc')
+        ep1_proj_item1_obj2.deliverables.create(quarter=4, description='q4 deliverable desc')
+        ep1_proj_item2 = cls.ep1.project_items.create(project=cls.proj2)
+        ep1_proj_item2_obj = ep1_proj_item2.objectives.create(
+            project=cls.proj1, description='proj 2 obj desc')
+        ep1_proj_item2_obj.deliverables.create(quarter=2, description='q2 deliverable desc')
+        ep1_proj_item2_obj.deliverables.create(quarter=3, description='q3 deliverable desc')
 
-        ep1_item1obj1 = ep1_item1.hcp_objectives.create(engagement_plan_item=ep1_item1,
-                                                        hcp=cls.hcp1,
-                                                        description='hcp 1 obj desc')
-        ep1_item1obj1.deliverables.create(quarter=1, description='q1 desc')
-        ep1_item1obj1.deliverables.create(quarter=2, description='q2 desc')
-        ep1_item1obj1.deliverables.create(quarter=3, description='q3 desc')
-        #
-        # ep1_obj1b = cls.ep1.hcp_objectives.create(hcp=cls.hcp1,
-        #                                           description='hcp 1b obj desc')
-        # ep1_obj1b.deliverables.create(quarter=1, description='q1 desc')
-        # ep1_obj1b.deliverables.create(quarter=2, description='q2 desc')
-        # ep1_obj1b.deliverables.create(quarter=3, description='q3 desc')
-        # ep1_obj1b.deliverables.create(quarter=4, description='q4 desc')
-        #
-        # ep1_obj2 = cls.ep1.hcp_objectives.create(hcp=cls.hcp2,
-        #                                          description='hcp 2 obj desc')
-        # ep1_obj2.deliverables.create(quarter=2, description='q2 desc')
-        # ep1_obj2.deliverables.create(quarter=3, description='q3 desc')
         #
         # cls.ep2 = EngagementPlan.objects.create(
         #     user=cls.user_msl2,
@@ -110,11 +134,6 @@ class BaseAPITestCase(APITestCase):
         # ep2_obj1.deliverables.create(quarter=1, description='q1 desc')
         # ep2_obj1.deliverables.create(quarter=2, description='q2 desc')
         # ep2_obj1.deliverables.create(quarter=3, description='q3 desc')
-
-        # projects
-        cls.proj1 = Project.objects.create(name='project 1')
-        cls.proj2 = Project.objects.create(name='project 2')
-        cls.proj2 = Project.objects.create(name='project 3')
 
         # resources
         cls.res1 = Resource.objects.create(url='http://www.test.com/res1.pdf')

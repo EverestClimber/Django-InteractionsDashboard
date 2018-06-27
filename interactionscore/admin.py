@@ -44,7 +44,7 @@ class TherapeuticAreaAdmin(SafeDeleteAdmin):
 
 
 @admin.register(Project)
-class ProjectAreaAdmin(SafeDeleteAdmin):
+class ProjectAdmin(SafeDeleteAdmin):
     model = Project
     list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter

@@ -140,7 +140,7 @@ class ProjectObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
 
     engagement_plan_item = m.ForeignKey(EngagementPlanProjectItem, on_delete=m.CASCADE,
                                         related_name='objectives')
-    hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+    project = m.ForeignKey('Project', on_delete=m.CASCADE)
 
     description = m.TextField()
 

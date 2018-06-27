@@ -9,6 +9,8 @@ from .models import (
     Project,
     HCPObjective,
     HCPDeliverable,
+    ProjectObjective,
+    ProjectDeliverable,
     AffiliateGroup,
     TherapeuticArea,
     Resource,
@@ -19,26 +21,27 @@ from .models import (
 )
 
 
-# def fix_nested_id_fields(validated_data):
-#     """Used bc DRF sometimes puts *full objects* into _id fields.
-#     """
-#     r = {}
-#     for f, v in validated_data.items():
-#         if (
-#             f.find('_id') == len(f) - 3 and  # f ends in _id
-#             type(v) not in {int, str}
-#         ):
-#             r[f] = v.id
-#         else:
-#             r[f] = v
-#     return r
-
-
 class NestedWritableFieldsSerializerMixin:
+    """Mechanism for nestable writable fields.
+
+    Goals: DRY, explicit, debuggable, easily extendable!
+    """
     class Meta:
         # expect nested_fields : {field_name: WritableSerializerClass}
         # (just use an OrderedDict here if order matters)
         nested_fields = {}
+
+    def validate(self, data):
+        for field_name in self.Meta.nested_fields.keys():
+            ids = set()
+            for it in data.get(field_name, []):
+                if 'id' not in it:
+                    continue
+                if it['id'] in ids:
+                    raise serializers.ValidationError('duplicate {} id: {}'.format(field_name,
+                                                                                   it['id']))
+                ids.add(it['id'])
+        return data
 
     def create(self, validated_data):
         nested_data = self._extract_nested_data(validated_data)
@@ -47,13 +50,14 @@ class NestedWritableFieldsSerializerMixin:
         obj = super().create(validated_data)
 
         # handle nested objects
-        parent_field_name = self._guess_parent_ref_field_name()
         for field_name, nested_items_data in nested_data.items():
             if nested_items_data is None:
                 continue
             for item_data in nested_items_data:
+                parent_field_name = self.Meta.nested_fields[field_name].get(
+                    'parent_field_name', self._guess_parent_ref_field_name())
                 item_data[parent_field_name] = obj.id
-                serializer_class = self.Meta.nested_fields[field_name]
+                serializer_class = self.Meta.nested_fields[field_name]['serializer']
                 serializer = serializer_class(data=item_data)
                 serializer.is_valid()
                 serializer.save()
@@ -67,7 +71,6 @@ class NestedWritableFieldsSerializerMixin:
         super().update(obj, validated_data)
 
         # handle nested objects
-        parent_field_name = self._guess_parent_ref_field_name()
         for field_name, nested_items_data in nested_data.items():
             if nested_items_data is None:
                 continue
@@ -80,7 +83,7 @@ class NestedWritableFieldsSerializerMixin:
             ).delete()
 
             for item_data in nested_items_data:
-                serializer_class = self.Meta.nested_fields[field_name]
+                serializer_class = self.Meta.nested_fields[field_name]['serializer']
                 model_class = serializer_class.Meta.model
                 # update for those with id
                 if 'id' in item_data:
@@ -92,10 +95,14 @@ class NestedWritableFieldsSerializerMixin:
                     serializer.save()
                 # crate those without id
                 else:
+                    parent_field_name = self.Meta.nested_fields[field_name].get(
+                        'parent_field_name', self._guess_parent_ref_field_name())
                     item_data[parent_field_name] = obj.id
                     serializer = serializer_class(data=item_data)
                     serializer.is_valid()
                     serializer.save()
+
+        return obj
 
     def _extract_nested_data(self, validated_data):
         """Extract nested data first so it doesn't break the regular process
@@ -163,10 +170,13 @@ class HCPSerializer(serializers.ModelSerializer):
 
 
 class HCPDeliverableSerializer(serializers.ModelSerializer):
+    objective_id = serializers.IntegerField(required=False)
+
     class Meta:
         model = HCPDeliverable
         fields = (
             'id',
+            'objective_id',
             'quarter',
             'description',
             'status',
@@ -174,14 +184,9 @@ class HCPDeliverableSerializer(serializers.ModelSerializer):
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
 
 
-class HCPObjectiveSerializer(serializers.ModelSerializer):
-    # hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
-    # engagement_plan_item_id = serializers.PrimaryKeyRelatedField(
-    #     required=False, queryset=EngagementPlanItem.objects.all())  # read + write
-
-    hcp_id = serializers.IntegerField()
-    engagement_plan_item_id = serializers.IntegerField()
-
+class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
+    hcp_id = serializers.IntegerField(required=False)
+    engagement_plan_item_id = serializers.IntegerField(required=False)
     deliverables = HCPDeliverableSerializer(many=True)
 
     class Meta:
@@ -199,67 +204,66 @@ class HCPObjectiveSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
         nested_fields = {
-            'deliverables': HCPDeliverableSerializer,
+            'deliverables': {
+                'serializer': HCPDeliverableSerializer,
+                'parent_field_name': 'objective_id',
+            }
         }
 
-    # def create(self, validated_data):
-    #     deliverables = validated_data.pop('deliverables', None)
-    #
-    #     validated_data = fix_nested_id_fields(validated_data)
-    #
-    #     # super call to properly handle m2m rels
-    #     obj = super().create(validated_data)
-    #
-    #     # deliverables nested
-    #     #########################################
-    #     if deliverables is not None:
-    #         for deliverable_data in deliverables:
-    #             # create directly bc there are no writable nested fields under this
-    #             obj.deliverables.create(**deliverable_data)
-    #
-    #     return obj
-    #
-    # def update(self, instance, validated_data):
-    #     deliverables = validated_data.pop('deliverables', None)
-    #     validated_data = fix_nested_id_fields(validated_data)
-    #
-    #     super().update(instance, validated_data)
-    #
-    #     # deliverables nested
-    #     #########################################
-    #     if deliverables is not None:
-    #         # delete items not present
-    #         instance.deliverables.exclude(
-    #             id__in=(deliverable_data['id']
-    #                     for deliverable_data in deliverables
-    #                     if 'id' in deliverable_data)
-    #         ).delete()
-    #         for deliverable_data in deliverables:
-    #             if 'id' in deliverable_data:  # update existing if with id
-    #                 instance.deliverables.filter(id=deliverable_data['id'])\
-    #                     .update(**deliverable_data)
-    #             else:  # create new if without id
-    #                 instance.deliverables.create(**deliverable_data)
-    #
-    #     return instance
+
+class ProjectDeliverableSerializer(serializers.ModelSerializer):
+    objective_id = serializers.IntegerField(required=False)
+
+    class Meta:
+        model = ProjectDeliverable
+        fields = (
+            'id',
+            'objective_id',
+            'quarter',
+            'description',
+            'status',
+        )
+        extra_kwargs = {'id': {'read_only': False, 'required': False}}
+
+
+class ProjectObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
+    project_id = serializers.IntegerField()
+    engagement_plan_item_id = serializers.IntegerField(required=False)
+    deliverables = ProjectDeliverableSerializer(many=True)
+
+    class Meta:
+        model = ProjectObjective
+        fields = (
+            'id',
+            'engagement_plan_item_id',
+            'project_id',
+            'description',
+            'approved',
+            'approved_at',
+            'deliverables',
+            'created_at',
+            'updated_at',
+        )
+        extra_kwargs = {'id': {'read_only': False, 'required': False}}
+        nested_fields = {
+            'deliverables': {
+                'serializer': ProjectDeliverableSerializer,
+                'parent_field_name': 'objective_id',
+            }
+        }
 
 
 class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
-    hcp = HCPSerializer(required=False, read_only=True)
-
-    hcp_objectives = HCPObjectiveSerializer(many=True)
-
-    # hcp_id = serializers.PrimaryKeyRelatedField(queryset=HCP.objects.all())  # read + write
-    # engagement_plan_id = serializers.PrimaryKeyRelatedField(
-    #     required=False, queryset=EngagementPlan.objects.all())  # read + write
-
+    engagement_plan_id = serializers.IntegerField(required=False)
     hcp_id = serializers.IntegerField()
-    engagement_plan_id = serializers.IntegerField()
+    hcp = HCPSerializer(required=False, read_only=True)
+    objectives = HCPObjectiveSerializer(many=True, required=False)
 
     class Meta:
         model = EngagementPlanHCPItem
         fields = (
             'id',
+            'engagement_plan_id',
             'hcp',
             'hcp_id',
             'approved',
@@ -270,22 +274,26 @@ class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, seria
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
         nested_fields = {
-            'objectives': HCPObjectiveSerializer,
+            'objectives': {
+                'serializer': HCPObjectiveSerializer,
+                'parent_field_name': 'engagement_plan_item_id',
+            }
         }
 
 
 class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
-    hcp = HCPSerializer(required=False, read_only=True)
-    hcp_id = serializers.IntegerField()
-    engagement_plan_id = serializers.IntegerField()
-    hcp_objectives = HCPObjectiveSerializer(many=True)
+    project = ProjectSerializer(required=False, read_only=True)
+    project_id = serializers.IntegerField()
+    engagement_plan_id = serializers.IntegerField(required=False)
+    objectives = ProjectObjectiveSerializer(many=True)
 
     class Meta:
         model = EngagementPlanProjectItem
         fields = (
             'id',
-            'hcp',
-            'hcp_id',
+            'engagement_plan_id',
+            'project',
+            'project_id',
             'approved',
             'approved_at',
             'created_at',
@@ -294,11 +302,14 @@ class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixi
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
         nested_fields = {
-            'objectives': HCPObjectiveSerializer,
+            'objectives': {
+                'serializer': ProjectObjectiveSerializer,
+                'parent_field_name': 'engagement_plan_item_id',
+            }
         }
 
 
-class EngagementPlanSerializer(serializers.ModelSerializer):
+class EngagementPlanSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
     hcp_items = EngagementPlanHCPItemSerializer(many=True)
     project_items = EngagementPlanProjectItemItemSerializer(many=True)
 
@@ -322,9 +333,17 @@ class EngagementPlanSerializer(serializers.ModelSerializer):
             'updated_at',
         )
         nested_fields = {
-            'hcp_items': EngagementPlanHCPItemSerializer,
-            'project_items': EngagementPlanProjectItemItemSerializer,
+            'hcp_items': {'serializer': EngagementPlanHCPItemSerializer},
+            'project_items': {'serializer': EngagementPlanProjectItemItemSerializer},
         }
+
+    def create(self, validated_data):
+        # set user to current user unless user is admin
+        user = self.context['request'].user
+        if not user.is_staff and not user.is_superuser:
+            validated_data['user'] = user
+
+        return super().create(validated_data)
 
 
 class InteractionSerializer(serializers.ModelSerializer):
