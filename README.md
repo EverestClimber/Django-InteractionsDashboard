@@ -39,6 +39,13 @@ virtualenv -p /usr/bin/python3 ../venv_dev
 pip install -r requirements/dev.txt
 ```
 
+Commands to setup user/roles:
+
+```
+python manage.py setup_user_roles
+# python manage.py create_test_users # OPTIONAL
+```
+
 Helpers (optional):
 
 1. `cp dev-activate.example.sh dev-activate.sh` (`dev-activate.sh` is git ignored so can be machine specific)

@@ -1,0 +1,32 @@
+[
+{
+  "model": "interactionscore.affiliategroup",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:51:34.919Z",
+    "updated_at": "2018-06-27T12:51:34.919Z",
+    "name": "Nordics"
+  }
+},
+{
+  "model": "interactionscore.affiliategroup",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:51:39.561Z",
+    "updated_at": "2018-06-27T12:51:39.561Z",
+    "name": "DACH"
+  }
+},
+{
+  "model": "interactionscore.affiliategroup",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:51:43.392Z",
+    "updated_at": "2018-06-27T12:51:43.392Z",
+    "name": "Benelux"
+  }
+}
+]

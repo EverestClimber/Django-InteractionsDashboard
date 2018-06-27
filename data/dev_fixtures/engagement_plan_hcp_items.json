@@ -1,0 +1,28 @@
+[
+{
+  "model": "interactionscore.engagementplanhcpitem",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.519Z",
+    "updated_at": "2018-06-27T13:01:53.519Z",
+    "approved": false,
+    "approved_at": null,
+    "engagement_plan": 1,
+    "hcp": 1
+  }
+},
+{
+  "model": "interactionscore.engagementplanhcpitem",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.521Z",
+    "updated_at": "2018-06-27T13:01:53.521Z",
+    "approved": false,
+    "approved_at": null,
+    "engagement_plan": 1,
+    "hcp": 2
+  }
+}
+]

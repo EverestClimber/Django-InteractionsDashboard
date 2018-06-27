@@ -1,0 +1,63 @@
+[
+{
+  "model": "interactionscore.hcp",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:55:14.038Z",
+    "updated_at": "2018-06-27T12:55:14.038Z",
+    "first_name": "Maria",
+    "last_name": "Tyrol",
+    "email": "hcp.1@test.com",
+    "institution_name": "",
+    "institution_address": "",
+    "contact_preference": null,
+    "affiliate_groups": [
+      1
+    ],
+    "tas": [
+      1
+    ]
+  }
+},
+{
+  "model": "interactionscore.hcp",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:55:48.832Z",
+    "updated_at": "2018-06-27T12:55:48.832Z",
+    "first_name": "John",
+    "last_name": "Gravediger",
+    "email": "hcp.2@test.com",
+    "institution_name": "",
+    "institution_address": "",
+    "contact_preference": null,
+    "affiliate_groups": [
+      2
+    ],
+    "tas": []
+  }
+},
+{
+  "model": "interactionscore.hcp",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:56:40.077Z",
+    "updated_at": "2018-06-27T12:56:40.077Z",
+    "first_name": "Patricia",
+    "last_name": "Picaso",
+    "email": "",
+    "institution_name": "",
+    "institution_address": "",
+    "contact_preference": null,
+    "affiliate_groups": [
+      3
+    ],
+    "tas": [
+      3
+    ]
+  }
+}
+]

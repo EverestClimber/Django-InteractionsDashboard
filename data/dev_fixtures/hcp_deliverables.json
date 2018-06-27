@@ -1,0 +1,80 @@
+[
+{
+  "model": "interactionscore.hcpdeliverable",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.528Z",
+    "updated_at": "2018-06-27T13:01:53.528Z",
+    "objective": 1,
+    "quarter": 2,
+    "description": "q1 MT deliv desc",
+    "status": null
+  }
+},
+{
+  "model": "interactionscore.hcpdeliverable",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.530Z",
+    "updated_at": "2018-06-27T13:01:53.530Z",
+    "objective": 1,
+    "quarter": 3,
+    "description": "q2 MT deliv desc",
+    "status": null
+  }
+},
+{
+  "model": "interactionscore.hcpdeliverable",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.531Z",
+    "updated_at": "2018-06-27T13:01:53.532Z",
+    "objective": 2,
+    "quarter": 1,
+    "description": "q1 o1 JG deliv desc",
+    "status": null
+  }
+},
+{
+  "model": "interactionscore.hcpdeliverable",
+  "pk": 4,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.533Z",
+    "updated_at": "2018-06-27T13:01:53.533Z",
+    "objective": 2,
+    "quarter": 2,
+    "description": "q2 o1 JG deliv desc",
+    "status": null
+  }
+},
+{
+  "model": "interactionscore.hcpdeliverable",
+  "pk": 5,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.534Z",
+    "updated_at": "2018-06-27T13:01:53.534Z",
+    "objective": 2,
+    "quarter": 3,
+    "description": "q3 o1 JG deliv desc",
+    "status": null
+  }
+},
+{
+  "model": "interactionscore.hcpdeliverable",
+  "pk": 6,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.536Z",
+    "updated_at": "2018-06-27T13:01:53.536Z",
+    "objective": 3,
+    "quarter": 3,
+    "description": "q3 o2 JG deliv desc",
+    "status": null
+  }
+}
+]

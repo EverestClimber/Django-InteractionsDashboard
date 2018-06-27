@@ -70,8 +70,8 @@ class ProjectDeliverableInline(nested_admin.NestedTabularInline):
 
 
 class ProjectObjectiveInline(nested_admin.NestedStackedInline):
-    model = HCPObjective
-    fields = ('hcp', 'description', 'approved',)
+    model = ProjectObjective
+    fields = ('project', 'description')
     extra = 0
     inlines = (
         ProjectDeliverableInline,
@@ -104,7 +104,7 @@ class EngagementPlanProjectItemInline(nested_admin.NestedStackedInline):
     model = EngagementPlanProjectItem
     fields = ('project',)
     extra = 0
-    inlines = (HCPObjectiveInline, CommentInline)
+    inlines = (ProjectObjectiveInline, CommentInline)
 
 
 def action_engagement_plans_approve(modeladmin, request, queryset):

@@ -1,0 +1,38 @@
+[
+{
+  "model": "interactionscore.projectobjective",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:08:50.274Z",
+    "updated_at": "2018-06-27T13:08:50.274Z",
+    "engagement_plan_item": 3,
+    "project": 2,
+    "description": "p2 o1 desc"
+  }
+},
+{
+  "model": "interactionscore.projectobjective",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:11:29.252Z",
+    "updated_at": "2018-06-27T13:11:29.252Z",
+    "engagement_plan_item": 4,
+    "project": 3,
+    "description": "p3 o1 desc"
+  }
+},
+{
+  "model": "interactionscore.projectobjective",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:11:29.253Z",
+    "updated_at": "2018-06-27T13:11:29.253Z",
+    "engagement_plan_item": 4,
+    "project": 3,
+    "description": "p3 o2 desc"
+  }
+}
+]

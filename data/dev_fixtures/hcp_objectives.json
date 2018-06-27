@@ -1,0 +1,44 @@
+[
+{
+  "model": "interactionscore.hcpobjective",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.522Z",
+    "updated_at": "2018-06-27T13:01:53.522Z",
+    "approved": false,
+    "approved_at": null,
+    "engagement_plan_item": 1,
+    "hcp": 1,
+    "description": "Initiate clinical trial for PVX3047"
+  }
+},
+{
+  "model": "interactionscore.hcpobjective",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.524Z",
+    "updated_at": "2018-06-27T13:01:53.524Z",
+    "approved": false,
+    "approved_at": null,
+    "engagement_plan_item": 2,
+    "hcp": 2,
+    "description": "Dr. JG's obj 1"
+  }
+},
+{
+  "model": "interactionscore.hcpobjective",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:01:53.526Z",
+    "updated_at": "2018-06-27T13:01:53.526Z",
+    "approved": false,
+    "approved_at": null,
+    "engagement_plan_item": 2,
+    "hcp": 2,
+    "description": "Dr. JG's obj 2"
+  }
+}
+]

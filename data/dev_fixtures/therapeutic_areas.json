@@ -1,0 +1,35 @@
+[
+{
+  "model": "interactionscore.therapeuticarea",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:52:03.757Z",
+    "updated_at": "2018-06-27T12:52:03.757Z",
+    "name": "Endocrinology",
+    "resources": []
+  }
+},
+{
+  "model": "interactionscore.therapeuticarea",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:52:11.827Z",
+    "updated_at": "2018-06-27T12:52:11.828Z",
+    "name": "Nephrology",
+    "resources": []
+  }
+},
+{
+  "model": "interactionscore.therapeuticarea",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T12:52:19.171Z",
+    "updated_at": "2018-06-27T12:52:19.171Z",
+    "name": "Gastroenterology",
+    "resources": []
+  }
+}
+]

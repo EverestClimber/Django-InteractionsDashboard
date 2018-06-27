@@ -1,0 +1,32 @@
+[
+{
+  "model": "interactionscore.project",
+  "pk": 1,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:02:11.132Z",
+    "updated_at": "2018-06-27T13:02:11.132Z",
+    "name": "Project 1"
+  }
+},
+{
+  "model": "interactionscore.project",
+  "pk": 2,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:02:18.001Z",
+    "updated_at": "2018-06-27T13:02:18.001Z",
+    "name": "Project 2"
+  }
+},
+{
+  "model": "interactionscore.project",
+  "pk": 3,
+  "fields": {
+    "deleted": null,
+    "created_at": "2018-06-27T13:02:22.243Z",
+    "updated_at": "2018-06-27T13:02:22.243Z",
+    "name": "Project 3"
+  }
+}
+]
