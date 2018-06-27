@@ -1,7 +1,13 @@
 [
   "interactionscore/tests/test_testing.py::test_testing",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_approve_ep_all_hcp_items",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_approve_ep_all_hcp_items_by_id",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_approve_ep_some_hcp_items",
   "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_create_engagement_plan",
   "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_list_engagement_plans",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_all_hcp_items",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_all_hcp_items_by_id",
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_some_hcp_items",
   "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_update_engagement_plan",
   "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_create_interaction",
   "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_list_interactions",

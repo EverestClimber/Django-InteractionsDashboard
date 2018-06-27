@@ -154,10 +154,8 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
         When no params are provided entire EP gets approved.
         When providing params, give one of these:
 
-        * `engagement_list_items : Bool`
-        * `hcp_objectives : Bool`
-        * `engagement_list_items_ids : [Int]` - list of ids
-        * `hcp_objectives_ids : [Int]` - list of ids
+        * `hcp_items : Bool`
+        * `hcp_items_ids : Bool`
 
         *Ignore body params table that maybe below this action, none of those are used.*
 
@@ -165,26 +163,19 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
         """
         eplan = self.get_object()
 
-        engagement_list_items = request.data.get('engagement_list_items')
-        hcp_objectives = request.data.get('hcp_objectives')
-        engagement_list_items_ids = request.data.get('engagement_list_items_ids')
-        hcp_objectives_ids = request.data.get('hcp_objectives_ids')
+        hcp_items = request.data.get('hcp_items')
+        hcp_items_ids = request.data.get('hcp_items_ids')
 
-        if engagement_list_items:
-            for elitem in eplan.engagement_list_items.all():
-                elitem.approve()
-        if hcp_objectives:
-            for hcp_obj in eplan.hcp_objectives.all():
-                hcp_obj.approve()
-        if engagement_list_items_ids:
-            for elitem_id in engagement_list_items_ids:
-                eplan.engagement_list_items.get(id=elitem_id).approve()
-        if hcp_objectives_ids:
-            for hcp_obj_id in hcp_objectives_ids:
-                eplan.hcp_objectives.get(id=hcp_obj_id).approve()
-
-        if not (engagement_list_items or hcp_objectives or engagement_list_items_ids or hcp_objectives_ids):
+        if hcp_items:
+            for hcp_item in eplan.hcp_items.all():
+                hcp_item.approve()
             eplan.approve()
+
+        if hcp_items_ids:
+            for hcp_item in hcp_items_ids:
+                eplan.hcp_items.get(id=hcp_item).approve()
+            if not eplan.hcp_items.filter(approved=False).exists():
+                eplan.approve()
 
         return Response(self.get_serializer(eplan).data)
 
@@ -195,9 +186,7 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
         When no params are provided entire EP gets unapproved.
         When providing params, give one of these:
 
-        * `engagement_list_items : Bool`
         * `hcp_objectives : Bool`
-        * `engagement_list_items_ids : [Int]` - list of ids
         * `hcp_objectives_ids : [Int]` - list of ids
 
         *Ignore body params table that maybe below this action, none of those are used.*
@@ -206,26 +195,19 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
         """
         eplan = self.get_object()
 
-        engagement_list_items = request.data.get('engagement_list_items')
-        hcp_objectives = request.data.get('hcp_objectives')
-        engagement_list_items_ids = request.data.get('engagement_list_items_ids')
-        hcp_objectives_ids = request.data.get('hcp_objectives_ids')
+        hcp_items = request.data.get('hcp_items')
+        hcp_items_ids = request.data.get('hcp_items_ids')
 
-        if engagement_list_items:
-            for elitem in eplan.engagement_list_items.all():
-                elitem.unapprove()
-        if hcp_objectives:
-            for hcp_obj in eplan.hcp_objectives.all():
-                hcp_obj.unapprove()
-        if engagement_list_items_ids:
-            for elitem_id in engagement_list_items_ids:
-                eplan.engagement_list_items.get(id=elitem_id).unapprove()
-        if hcp_objectives_ids:
-            for hcp_obj_id in hcp_objectives_ids:
-                eplan.hcp_objectives.get(id=hcp_obj_id).unapprove()
-
-        if not (engagement_list_items or hcp_objectives or engagement_list_items_ids or hcp_objectives_ids):
+        if hcp_items:
+            for hcp_item in eplan.hcp_items.all():
+                hcp_item.unapprove()
             eplan.unapprove()
+
+        if hcp_items_ids:
+            for hcp_item in hcp_items_ids:
+                eplan.hcp_items.get(id=hcp_item).unapprove()
+            if eplan.hcp_items.filter(approved=False).exists():
+                eplan.unapprove()
 
         return Response(self.get_serializer(eplan).data)
 

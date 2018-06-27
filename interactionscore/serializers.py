@@ -196,9 +196,13 @@ class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.Mo
             'engagement_plan_item_id',
             'hcp_id',
             'description',
+            'deliverables',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
             'approved',
             'approved_at',
-            'deliverables',
             'created_at',
             'updated_at',
         )
@@ -238,9 +242,11 @@ class ProjectObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializer
             'engagement_plan_item_id',
             'project_id',
             'description',
-            'approved',
-            'approved_at',
             'deliverables',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
             'created_at',
             'updated_at',
         )
@@ -294,8 +300,6 @@ class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixi
             'engagement_plan_id',
             'project',
             'project_id',
-            'approved',
-            'approved_at',
             'created_at',
             'updated_at',
             'objectives'

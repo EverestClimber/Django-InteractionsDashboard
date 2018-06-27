@@ -117,7 +117,7 @@ class EngagementPlanHCPItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
 
 
-class EngagementPlanProjectItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
+class EngagementPlanProjectItem(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
@@ -135,7 +135,7 @@ class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
     description = m.TextField()
 
 
-class ProjectObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
+class ProjectObjective(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     engagement_plan_item = m.ForeignKey(EngagementPlanProjectItem, on_delete=m.CASCADE,

@@ -243,3 +243,150 @@ class TestEngagementPlansAPI(BaseAPITestCase):
 
         assert (ep.project_items.count() == len(data['project_items']) ==
                 len(rdata['project_items']))
+
+    def test_approve_ep_all_hcp_items(self):
+        # required for the test to make sense:
+        assert self.ep1.approved is False
+
+        self.client.force_login(self.user_man1)
+        res = self.client.post(
+            reverse('engagementplan-approve', args=[self.ep1.id]),
+            {
+                'hcp_items': True,
+            })
+        print_json('test_approve_ep_all_hcp_items: res', res.json())
+        assert res.status_code // 100 == 2
+
+        rdata = res.json()
+
+        ep = EngagementPlan.objects.get(id=self.ep1.id)
+
+        assert rdata['id'] == self.ep1.id
+
+        assert rdata['approved'] is ep.approved is True
+        assert rdata['approved_at'] is not None
+        assert not ep.hcp_items.filter(approved=False).exists()
+
+    def test_approve_ep_some_hcp_items(self):
+        # required for the test to make sense:
+        assert self.ep1.approved is False
+
+        self.client.force_login(self.user_man1)
+        res = self.client.post(
+            reverse('engagementplan-approve', args=[self.ep1.id]),
+            {
+                'hcp_items_ids': [self.ep1.hcp_items.get(hcp=self.hcp1).id],
+            })
+        print_json('test_approve_ep_some_hcp_items: res', res.json())
+        assert res.status_code // 100 == 2
+
+        rdata = res.json()
+
+        ep = EngagementPlan.objects.get(id=self.ep1.id)
+
+        assert rdata['id'] == self.ep1.id
+
+        assert rdata['approved'] is ep.approved is False
+        assert rdata['approved_at'] is None
+        assert ep.hcp_items.get(hcp=self.hcp1).approved is True
+        assert ep.hcp_items.get(hcp=self.hcp2).approved is False
+
+    def test_approve_ep_all_hcp_items_by_id(self):
+        # required for the test to make sense:
+        assert self.ep1.approved is False
+
+        self.client.force_login(self.user_man1)
+        res = self.client.post(
+            reverse('engagementplan-approve', args=[self.ep1.id]),
+            {
+                'hcp_items_ids': [it.id for it in self.ep1.hcp_items.all()],
+            })
+        print_json('test_approve_ep_all_hcp_items_by_id: res', res.json())
+        assert res.status_code // 100 == 2
+
+        rdata = res.json()
+
+        ep = EngagementPlan.objects.get(id=self.ep1.id)
+
+        assert rdata['id'] == self.ep1.id
+
+        assert rdata['approved'] is ep.approved is True
+        assert rdata['approved_at'] is not None
+        assert not ep.hcp_items.filter(approved=False).exists()
+
+    def test_unapprove_ep_all_hcp_items(self):
+        # required for the test to make sense:
+        assert self.ep1.approved is False
+
+        self.ep1.hcp_items.get(hcp=self.hcp1).approve()
+
+        self.client.force_login(self.user_man1)
+        res = self.client.post(
+            reverse('engagementplan-unapprove', args=[self.ep1.id]),
+            {
+                'hcp_items': True,
+            })
+        print_json('test_approve_ep_all_hcp_items: res', res.json())
+        assert res.status_code // 100 == 2
+
+        rdata = res.json()
+
+        ep = EngagementPlan.objects.get(id=self.ep1.id)
+
+        assert rdata['id'] == self.ep1.id
+
+        assert rdata['approved'] is ep.approved is False
+        assert not ep.hcp_items.filter(approved=True).exists()
+
+    def test_unapprove_ep_some_hcp_items(self):
+        # required for the test to make sense:
+        assert self.ep1.approved is False
+
+        for it in self.ep1.hcp_items.all():
+            it.approve()
+
+        self.client.force_login(self.user_man1)
+        res = self.client.post(
+            reverse('engagementplan-unapprove', args=[self.ep1.id]),
+            {
+                'hcp_items_ids': [self.ep1.hcp_items.get(hcp=self.hcp1).id],
+            })
+        print_json('test_approve_ep_some_hcp_items: res', res.json())
+        assert res.status_code // 100 == 2
+
+        rdata = res.json()
+
+        ep = EngagementPlan.objects.get(id=self.ep1.id)
+
+        assert rdata['id'] == self.ep1.id
+
+        assert rdata['approved'] is ep.approved is False
+        assert ep.hcp_items.get(hcp=self.hcp1).approved is False
+        assert ep.hcp_items.get(hcp=self.hcp2).approved is True
+
+    def test_unapprove_ep_all_hcp_items_by_id(self):
+        self.ep1.approve()
+        for it in self.ep1.hcp_items.all():
+            it.approve()
+
+        self.client.force_login(self.user_man1)
+        res = self.client.post(
+            reverse('engagementplan-unapprove', args=[self.ep1.id]),
+            {
+                'hcp_items_ids': [it.id for it in self.ep1.hcp_items.all()],
+            })
+        print_json('test_approve_ep_all_hcp_items_by_id: res', res.json())
+        assert res.status_code // 100 == 2
+
+        rdata = res.json()
+
+        ep = EngagementPlan.objects.get(id=self.ep1.id)
+
+        assert rdata['id'] == self.ep1.id
+
+        assert rdata['approved'] is ep.approved is False
+        assert not ep.hcp_items.filter(approved=True).exists()
+
+        # TODO: prover way to revert each test to original state
+        self.ep1.unapprove()
+
