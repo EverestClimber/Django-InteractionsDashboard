@@ -27,7 +27,7 @@ class NestedWritableFieldsSerializerMixin:
     Goals: DRY, explicit, debuggable, easily extendable!
     """
     class Meta:
-        # expect nested_fields : {field_name: WritableSerializerClass}
+        # expect nested_fields : {field_name: {serializer, *parent_field_name}}
         # (just use an OrderedDict here if order matters)
         nested_fields = {}
 
