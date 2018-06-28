@@ -22,6 +22,7 @@ from .models import (
     ProjectDeliverable,
     HCP,
     User,
+    Interaction,
 )
 
 admin.site.site_header = "Otsuka Interactions Admin"
@@ -163,6 +164,13 @@ class HCPAdmin(SafeDeleteAdmin):
 
     def hcp_affiliate_groups(self, obj):
         return ", ".join([ag.name for ag in obj.affiliate_groups.all()])
+
+
+@admin.register(Interaction)
+class InteractionAdmin(SafeDeleteAdmin):
+    model = Interaction
+    list_display = (highlight_deleted,) + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
 
 
 @admin.register(User)

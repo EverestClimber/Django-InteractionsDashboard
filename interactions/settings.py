@@ -164,6 +164,7 @@ ADMIN_REORDER = (
 
     {'app': 'interactionscore', 'label': 'Core',
      'models': (
+         'interactionscore.Interaction',
          'interactionscore.EngagementPlan',
          'interactionscore.HCP',
          'interactionscore.Project',

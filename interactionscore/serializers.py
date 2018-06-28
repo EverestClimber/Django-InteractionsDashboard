@@ -378,7 +378,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'origin_of_interaction',
             'origin_of_interaction_other',
             'is_adverse_event',
-            'appropriate_procedures_followed',
+            'appropriate_pv_procedures_followed',
             'is_follow_up_required',
         )
 
