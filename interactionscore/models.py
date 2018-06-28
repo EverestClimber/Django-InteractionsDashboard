@@ -11,7 +11,6 @@ from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
 from interactions.helpers import ChoiceEnum
 
-
 # Core Business Logic Models
 #####################################################################
 
@@ -225,11 +224,6 @@ class HCP(TimestampedModel, SafeDeleteModel):
 class Interaction(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
-    class OriginOfInteraction(ChoiceEnum):
-        option1 = 'Option #1'
-        option2 = 'Option #3'
-        other = 'Other'
-
     # TODO: investigate behavior on soft-deleting User and HCP
     # (also considering that HCP does not have safe delete set to be cascading)
 
@@ -244,13 +238,29 @@ class Interaction(TimestampedModel, SafeDeleteModel):
 
     description = m.TextField()
     purpose = m.TextField()
+
     is_joint_visit = m.BooleanField(default=False, verbose_name='Joint visit')
     joint_visit_with = m.TextField(blank=True)  # when is_joint_visit=True
+
+    class OriginOfInteraction(ChoiceEnum):
+        medinfo_enquiry = 'MedInfo enquiry'
+        engagement_plan = 'Engagement Plan'
+        other = 'Other'
+
     origin_of_interaction = m.CharField(max_length=255,
                                         choices=OriginOfInteraction.choices())
     origin_of_interaction_other = m.CharField(max_length=255, blank=True)  # when origin_of_interaction="other"
+
+    class TypeOfInteraction(ChoiceEnum):
+        phone = 'Phone'
+        face_to_face = 'Face-to-face'
+        other = 'Email'
+
+    type_of_interaction = m.CharField(max_length=255,
+                                      choices=TypeOfInteraction.choices())
+
     is_adverse_event = m.BooleanField(default=False, verbose_name='Adverse event')
-    appropriate_procedures_followed = m.NullBooleanField(default=False, null=True)  # when is_adverse_event=True
+    appropriate_pv_procedures_followed = m.NullBooleanField(default=False, null=True)  # when is_adverse_event=True
     is_follow_up_required = m.BooleanField(default=False, verbose_name='Follow up required')
 
 
