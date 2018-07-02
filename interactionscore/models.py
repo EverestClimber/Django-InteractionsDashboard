@@ -207,10 +207,15 @@ class HCP(TimestampedModel, SafeDeleteModel):
     first_name = m.CharField(max_length=255, blank=True)
     last_name = m.CharField(max_length=255, blank=True)
     email = m.EmailField(max_length=255, blank=True)
+    phone = m.CharField(max_length=255, blank=True)
+    time_availability = m.CharField(max_length=255, blank=True)
     institution_name = m.CharField(max_length=255, blank=True)
     institution_address = m.TextField(blank=True)
     contact_preference = m.CharField(max_length=255, null=True, blank=True,
                                      choices=ContactPreference.choices())
+
+    city = m.CharField(max_length=255, blank=True)
+    country = m.CharField(max_length=255, blank=True)
 
     def __str__(self):
         return "{} {}".format(self.first_name, self.last_name)
@@ -279,13 +284,24 @@ class InteractionOutcome(TimestampedModel, SafeDeleteModel):
 class Project(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
-    name = m.CharField(max_length=255, unique=True)
+    affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True, related_name='projects')
+    tas = m.ManyToManyField('TherapeuticArea', blank=True, related_name='projects')
+
+    title = m.CharField(max_length=255, unique=True)
+
+    class Type(ChoiceEnum):
+        personal_project = 'Personal'
+        country_project = 'Country'
+        global_project = 'Global'
+
+    type = m.CharField(max_length=255,
+                       choices=Type.choices())
 
     def __str__(self):
-        return self.name
+        return self.title
 
     def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
+        return '{}(title="{}")'.format(self.__class__.__name__, self.name)
 
 
 def make_resource_filepath(instance, filename):
@@ -301,15 +317,27 @@ class Resource(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
     user = m.ForeignKey('User', on_delete=m.SET_NULL, null=True, blank=True)
+    affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True, related_name='resources')
+    tas = m.ManyToManyField('TherapeuticArea', blank=True, related_name='resources')
+
+    title = m.CharField(max_length=255, unique=True)
+    description = m.CharField(max_length=255, unique=True)
+    zinc_number_global = m.CharField(max_length=255, unique=True)
+    zinc_number_country = m.CharField(max_length=255, unique=True)
+
 
     url = m.URLField(max_length=255, blank=True)
     file = m.FileField(upload_to=make_resource_filepath, null=True, blank=True)
 
+    def __str__(self):
+        return self.title
+
+    def __repr__(self):
+        return '{}(title="{}")'.format(self.__class__.__name__, self.name)
+
 
 class TherapeuticArea(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
-
-    resources = m.ManyToManyField(Resource, blank=True, related_name='tas')
 
     name = m.CharField(max_length=255, unique=True)
 

@@ -23,6 +23,7 @@ from .models import (
     HCP,
     User,
     Interaction,
+    Resource,
 )
 
 admin.site.site_header = "Otsuka Interactions Admin"
@@ -47,7 +48,22 @@ class TherapeuticAreaAdmin(SafeDeleteAdmin):
 @admin.register(Project)
 class ProjectAdmin(SafeDeleteAdmin):
     model = Project
-    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_display = (
+                       highlight_deleted,
+                       "title",
+                       "type",
+                   ) + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
+
+
+@admin.register(Resource)
+class ResourceAdmin(SafeDeleteAdmin):
+    model = Resource
+    list_display = (
+                       highlight_deleted,
+                       "user",
+                       "title",
+                   ) + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
 
 
