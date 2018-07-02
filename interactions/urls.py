@@ -32,6 +32,8 @@ router.register(r'interactions', core_views.InteractionViewSet)
 router.register(r'projects', core_views.ProjectViewSet)
 router.register(r'therapeutic-areas', core_views.TherapeuticAreaViewSet)
 router.register(r'resources', core_views.ResourceViewSet)
+router.register(r'interaction-outcomes', core_views.InteractionOutcomeViewSet)
+router.register(r'hcp-objectives', core_views.HCPObjectiveViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
