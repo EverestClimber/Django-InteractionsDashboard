@@ -23,6 +23,7 @@ from .models import (
     HCP,
     User,
     Interaction,
+    InteractionOutcome,
     Resource,
 )
 
@@ -41,6 +42,13 @@ class AffiliateGroupAdmin(SafeDeleteAdmin):
 @admin.register(TherapeuticArea)
 class TherapeuticAreaAdmin(SafeDeleteAdmin):
     model = TherapeuticArea
+    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
+
+
+@admin.register(InteractionOutcome)
+class InteractionOutcomeAdmin(SafeDeleteAdmin):
+    model = InteractionOutcome
     list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
 

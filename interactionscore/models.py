@@ -208,6 +208,10 @@ class HCP(TimestampedModel, SafeDeleteModel):
     last_name = m.CharField(max_length=255, blank=True)
     email = m.EmailField(max_length=255, blank=True)
     phone = m.CharField(max_length=255, blank=True)
+    contact_person_first_name = m.CharField(max_length=255, blank=True)
+    contact_person_last_name = m.CharField(max_length=255, blank=True)
+    contact_person_email = m.EmailField(max_length=255, blank=True)
+    contact_person_phone = m.CharField(max_length=255, blank=True)
     time_availability = m.CharField(max_length=255, blank=True)
     institution_name = m.CharField(max_length=255, blank=True)
     institution_address = m.TextField(blank=True)
@@ -320,11 +324,10 @@ class Resource(TimestampedModel, SafeDeleteModel):
     affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True, related_name='resources')
     tas = m.ManyToManyField('TherapeuticArea', blank=True, related_name='resources')
 
-    title = m.CharField(max_length=255, unique=True)
-    description = m.CharField(max_length=255, unique=True)
-    zinc_number_global = m.CharField(max_length=255, unique=True)
-    zinc_number_country = m.CharField(max_length=255, unique=True)
-
+    title = m.CharField(max_length=255)
+    description = m.CharField(max_length=255, blank=True)
+    zinc_number_global = m.CharField(max_length=255, blank=True)
+    zinc_number_country = m.CharField(max_length=255, blank=True)
 
     url = m.URLField(max_length=255, blank=True)
     file = m.FileField(upload_to=make_resource_filepath, null=True, blank=True)

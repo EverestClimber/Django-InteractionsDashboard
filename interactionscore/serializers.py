@@ -130,7 +130,18 @@ class AffiliateGroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ('id', 'name')
+        fields = (
+            'id',
+            'title',
+            'affiliate_groups',
+            'tas',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
+        )
 
 
 class TherapeuticAreaSerializer(serializers.ModelSerializer):
@@ -150,7 +161,24 @@ class ResourceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Resource
-        fields = ('id', 'user_id', 'url', 'file')
+        fields = (
+            'id',
+            'user_id',
+            'title',
+            'description',
+            'zinc_number_country',
+            'zinc_number_global',
+            'url',
+            'file',
+            'affiliate_groups',
+            'tas',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
+        )
 
 
 class HCPSerializer(serializers.ModelSerializer):
@@ -166,6 +194,12 @@ class HCPSerializer(serializers.ModelSerializer):
             'contact_preference',
             'affiliate_groups',
             'tas',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
         )
 
 

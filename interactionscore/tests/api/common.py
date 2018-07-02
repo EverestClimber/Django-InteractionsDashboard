@@ -39,9 +39,9 @@ class BaseAPITestCase(APITestCase):
         cls.ag2 = AffiliateGroup.objects.create(name='Affiliate Group 2')
 
         # projects
-        cls.proj1 = Project.objects.create(name='project 1')
-        cls.proj2 = Project.objects.create(name='project 2')
-        cls.proj2 = Project.objects.create(name='project 3')
+        cls.proj1 = Project.objects.create(title='project 1')
+        cls.proj2 = Project.objects.create(title='project 2')
+        cls.proj2 = Project.objects.create(title='project 3')
 
         # create users
         cls.superuser = User.objects.create_superuser(
