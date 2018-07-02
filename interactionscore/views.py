@@ -13,6 +13,7 @@ from rest_framework.permissions import (
 from .models import (
     EngagementPlan,
     EngagementPlanPerms,
+    InteractionPerms,
     HCP,
     AffiliateGroup,
     TherapeuticArea,
@@ -254,6 +255,36 @@ class InteractionViewSet(mixins.CreateModelMixin,
     queryset = Interaction.objects.all()
     serializer_class = InteractionSerializer
     permission_classes = (IsAuthenticated,)
+
+    #################################################
+    # Permissions
+    #################################################
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # staff users and those with list_all_ep perm can see all
+        if (
+            self.request.user.is_staff or
+            self.request.user.has_interactions_perm(InteractionPerms.list_all_interaction)
+        ):
+            return qs
+        # list_own_ag_interaction perm allows listing items from same AG as user
+        if self.request.user.has_interactions_perm(InteractionPerms.list_own_ag_interaction):
+            return qs.filter(user__affiliate_groups__in=self.request.user.affiliate_groups.all())
+        # by default a user only has access to his own Interactions
+        return qs.filter(user=self.request.user)
+
+    def check_object_permissions(self, request, obj):
+        super().check_object_permissions(request, obj)
+
+        user = self.request.user
+
+        if self.action == 'create':
+            if user.has_interactions_perm('add_engagementplan'):
+                return  # allow
+
+        if self.action in {'list', 'retrieve'}:  # restricted by get_queryset above
+            return  # allow
 
 
 class EngagementPlanViewSet(viewsets.ModelViewSet):

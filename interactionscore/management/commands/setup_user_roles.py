@@ -5,7 +5,9 @@ from django.contrib.auth.models import Permission, Group
 
 from interactionscore.models import (
     EngagementPlan,
-    EngagementPlanPerms
+    EngagementPlanPerms,
+    Interaction,
+    InteractionPerms,
 )
 
 # User = get_user_model()
@@ -15,10 +17,12 @@ USER_ROLES = {
     'MSL': [
         (EngagementPlan, EngagementPlanPerms.change_own_current_ep),
         (EngagementPlan, 'add_engagementplan'),
+        (Interaction, 'add_interaction'),
     ],
     'MSL Manager': [
         (EngagementPlan, EngagementPlanPerms.list_own_ag_ep),
         (EngagementPlan, EngagementPlanPerms.approve_own_ag_ep),
+        (Interaction, InteractionPerms.list_all_interaction)
     ],
 }
 

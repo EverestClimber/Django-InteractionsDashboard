@@ -105,7 +105,7 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
 
     def __str__(self):
         return "{} / {}".format(self.user.email if self.user else '',
-                                self.year.year)
+                                self.year)
 
 
 class EngagementPlanHCPItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
@@ -230,8 +230,16 @@ class HCP(TimestampedModel, SafeDeleteModel):
                                                             self.last_name)
 
 
+class InteractionPerms(ChoiceEnum):
+    list_all_interaction = 'Can list all Interactions'
+    list_own_ag_interaction = 'Can list Interactions of own AGs'
+
+
 class Interaction(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
+
+    class Meta:
+        permissions = InteractionPerms.choices()
 
     # TODO: investigate behavior on soft-deleting User and HCP
     # (also considering that HCP does not have safe delete set to be cascading)
