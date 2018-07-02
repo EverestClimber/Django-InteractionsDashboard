@@ -83,7 +83,7 @@ class BaseAPITestCase(APITestCase):
         # EP1
         cls.ep1 = EngagementPlan.objects.create(
             user=cls.user_msl1,
-            year='2018-01-01'
+            year=2018,
         )
         # HCP items
         ep1_hcp_item1 = cls.ep1.hcp_items.create(hcp=cls.hcp1)

@@ -60,6 +60,7 @@ class ProjectAdmin(SafeDeleteAdmin):
                        highlight_deleted,
                        "title",
                        "type",
+                       "user",
                    ) + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
 
@@ -71,8 +72,16 @@ class ResourceAdmin(SafeDeleteAdmin):
                        highlight_deleted,
                        "user",
                        "title",
+                       "resource_affiliate_groups",
+                       "resource_tas",
                    ) + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
+
+    def resource_tas(self, obj):
+        return ", ".join([ta.name for ta in obj.tas.all()])
+
+    def resource_affiliate_groups(self, obj):
+        return ", ".join([ag.name for ag in obj.affiliate_groups.all()])
 
 
 @admin.register(Comment)

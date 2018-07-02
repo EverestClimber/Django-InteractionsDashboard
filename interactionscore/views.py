@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db.models import Q
 from rest_framework import viewsets, status, mixins
 from rest_framework import permissions
 from rest_framework.exceptions import APIException
@@ -20,6 +21,7 @@ from .models import (
     Interaction,
     InteractionOutcome,
     HCPObjective,
+    User,
 )
 from .serializers import (
     AffiliateGroupSerializer,
@@ -42,9 +44,45 @@ class AffiliateGroupViewSet(viewsets.ModelViewSet):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
+    """
+    list:
+    ### **URL Query Parameters**
+
+    * `user=<id>` - list Projects belonging to user
+    * `type=...` - filter Projects by type
+    * `tas=<id1>,<id2>,...` - get Projects for TA(s)
+    * `affiliate_groups=<id1>,<id2>,...` - get Projects for AffiliateGroup(s)
+    """
+
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     permission_classes = (IsAuthenticated,)
+
+    def filter_queryset(self, qs):
+        qs = super().filter_queryset(qs)
+
+        user_id = self.request.query_params.get('user', None)
+        project_type = self.request.query_params.get('type', None)
+        ta_ids = self.request.query_params.get('tas', None)
+        if ta_ids:
+            ta_ids = ta_ids.split(',')
+        affiliate_group_ids = self.request.query_params.get('affiliate_groups', None)
+        if affiliate_group_ids:
+            affiliate_group_ids = affiliate_group_ids.split(',')
+
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+
+        if project_type:
+            qs = qs.filter(type=project_type)
+
+        if ta_ids:
+            qs = qs.filter(tas__in=ta_ids)
+
+        if affiliate_group_ids:
+            qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
+
+        return qs
 
 
 class TherapeuticAreaViewSet(viewsets.ModelViewSet):
@@ -54,9 +92,44 @@ class TherapeuticAreaViewSet(viewsets.ModelViewSet):
 
 
 class ResourceViewSet(viewsets.ModelViewSet):
+    """
+    list:
+    ### **URL Query Parameters**
+
+    * `tas=<id1>,<id2>,...` - get Resources for TA(s)
+    * `affiliate_groups=<id1>,<id2>,...` - get Resources for AffiliateGroup(s)
+    * `user=<id>` - get Resources with TAs or AGs in common with user
+    """
+
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     permission_classes = (IsAuthenticated,)
+
+    def filter_queryset(self, qs):
+        qs = super().filter_queryset(qs)
+
+        user_id = self.request.query_params.get('user', None)
+        ta_ids = self.request.query_params.get('tas', None)
+        if ta_ids:
+            ta_ids = ta_ids.split(',')
+        affiliate_group_ids = self.request.query_params.get('affiliate_groups', None)
+        if affiliate_group_ids:
+            affiliate_group_ids = affiliate_group_ids.split(',')
+
+        if user_id:
+            user = User.objects.get(id=user_id)
+            qs = qs.filter(
+                Q(tas__in=user.tas.all()) |
+                Q(affiliate_groups__in=user.affiliate_groups.all())
+            )
+
+        if ta_ids:
+            qs = qs.filter(tas__in=ta_ids)
+
+        if affiliate_group_ids:
+            qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
+
+        return qs
 
 
 class InteractionOutcomeViewSet(viewsets.ModelViewSet):
@@ -66,15 +139,112 @@ class InteractionOutcomeViewSet(viewsets.ModelViewSet):
 
 
 class HCPViewSet(viewsets.ModelViewSet):
+    """
+    list:
+    ### **URL Query Parameters**
+
+    * `user=<id>` - get HCPs with TAs or AGs in common with user
+    * `user=<id>` & `engagement_plan=current` - get HCPs referenced in this user's current EP
+    * `engagement_plan=<id>` - get HCPs referenced in this EP
+    """
+
     queryset = HCP.objects.all()
     serializer_class = HCPSerializer
     permission_classes = (IsAuthenticated,)
 
+    def filter_queryset(self, qs):
+        qs = super().filter_queryset(qs)
+
+        user_id = self.request.query_params.get('user', None)
+        engagement_plan = self.request.query_params.get('engagement_plan', None)
+
+        engagement_plan_id = None
+        if engagement_plan:
+            if engagement_plan == 'current':
+                if not user_id:
+                    raise APIException('user needs to be specified '
+                                       'when requesting current EngagementPlan')
+                engagement_plan_id = EngagementPlan.objects.get(
+                    user_id=user_id,
+                    year=timezone.now().year
+                ).id
+            else:
+                engagement_plan_id = engagement_plan
+
+        # get HCPs in user's current engagement plan
+        # (or, in general, get HCPs referenced by an EP while also asserting EP
+        #  belongs to a user)
+        if user_id and engagement_plan_id:
+            qs = qs.filter(
+                engagementplanhcpitem__engagement_plan_id=engagement_plan_id,
+                engagementplanhcpitem__engagement_plan__user_id=user_id,
+            )
+        # get HCPs with TAs and AGs in common with this user
+        elif user_id:
+            user = User.objects.get(id=user_id)
+            qs = qs.filter(
+                Q(tas__in=user.tas.all()) |
+                Q(affiliate_groups__in=user.affiliate_groups.all())
+            )
+        # get HCPs reference in this EP
+        elif engagement_plan_id:
+            qs = qs.filter(engagementplanhcpitem__engagement_plan_id=engagement_plan_id)
+
+        return qs
+
 
 class HCPObjectiveViewSet(viewsets.ModelViewSet):
+    """
+    list:
+    ### **URL Query Parameters**
+
+    * `user=<id>` (& `engagement_plan=current` also assumed by default) -
+      get HCPObjectives referenced in this user's current EP
+    * `engagement_plan=<id>` - get HCPObjectives referenced in this EP
+    """
+
     queryset = HCPObjective.objects.all()
     serializer_class = HCPObjectiveSerializer
     permission_classes = (IsAuthenticated,)
+
+    def filter_queryset(self, qs):
+        qs = super().filter_queryset(qs)
+
+        user_id = self.request.query_params.get('user', None)
+        engagement_plan = self.request.query_params.get('engagement_plan', None)
+
+        if user_id and not engagement_plan:
+            engagement_plan = 'current'
+
+        engagement_plan_id = None
+        if engagement_plan:
+            if engagement_plan == 'current':
+                if not user_id:
+                    raise APIException('user needs to be specified '
+                                       'when requesting current EngagementPlan')
+                eplan = EngagementPlan.objects.filter(
+                    user_id=user_id,
+                    year=timezone.now().year
+                ).first()
+                if not eplan:
+                    return qs.none()
+                engagement_plan_id = eplan.id
+            else:
+                engagement_plan_id = engagement_plan
+
+        # get HCPObjs in user's current engagement plan
+        # (or, in general, get HCPObjs referenced by an EP while also asserting
+        #  EP belongs to a user)
+        if user_id and engagement_plan_id:
+            qs = qs.filter(
+                engagement_plan_item__engagement_plan_id=engagement_plan_id,
+                engagement_plan_item__engagement_plan__user_id=user_id,
+            )
+        # get HCPObjs reference in this EP
+        elif engagement_plan_id:
+            qs = qs.filter(engagement_plan_item__engagement_plan_id=engagement_plan_id)
+
+        return qs
 
 
 class InteractionViewSet(mixins.CreateModelMixin,
@@ -140,7 +310,7 @@ class EngagementPlanViewSet(viewsets.ModelViewSet):
             if user.has_interactions_perm(EngagementPlanPerms.change_own_current_ep):
                 if not user or obj.user != user:
                     self.permission_denied(request, "User does not own engagement plan")
-                if obj.year.year != timezone.now().year:
+                if obj.year != timezone.now().year:
                     self.permission_denied(request, "Only current (year) engagement plan can be changed")
                 return  # if no condition failed, allow
 

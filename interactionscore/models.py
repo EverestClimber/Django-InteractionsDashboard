@@ -101,7 +101,7 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
     user = m.ForeignKey('User', on_delete=m.CASCADE,
                         related_name='engagement_plans')
 
-    year = m.DateField(blank=True, default=datetime.date.today)
+    year = m.IntegerField()
 
     def __str__(self):
         return "{} / {}".format(self.user.email if self.user else '',
@@ -288,6 +288,8 @@ class InteractionOutcome(TimestampedModel, SafeDeleteModel):
 class Project(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
+    user = m.ForeignKey('User', on_delete=m.CASCADE, null=True, blank=True,
+                        related_name='projects')
     affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True, related_name='projects')
     tas = m.ManyToManyField('TherapeuticArea', blank=True, related_name='projects')
 

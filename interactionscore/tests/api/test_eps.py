@@ -36,7 +36,7 @@ class TestEngagementPlansAPI(BaseAPITestCase):
     def test_create_engagement_plan(self):
         url = reverse('engagementplan-list')
         data = {
-            "year": "2018-01-01",
+            "year": 2018,
             "hcp_items": [
                 {"hcp_id": self.hcp1.id,
                  "objectives": [
@@ -98,7 +98,7 @@ class TestEngagementPlansAPI(BaseAPITestCase):
 
         ep = EngagementPlan.objects.get(id=rdata['id'])
         assert ep.id == rdata['id']
-        assert str(ep.year) == rdata['year']
+        assert ep.year == rdata['year']
 
         assert (len(rdata['hcp_items']) == len(data['hcp_items']) ==
                 ep.hcp_items.count())
@@ -161,7 +161,7 @@ class TestEngagementPlansAPI(BaseAPITestCase):
     def test_update_engagement_plan(self):
         ep_before_update = self.ep1
         data = {
-            "year": "2019-01-01",
+            "year": 2019,
             "hcp_items": [
                 # update hcp1 item
                 {"id": self.ep1.hcp_items.get(hcp=self.hcp1).id,
