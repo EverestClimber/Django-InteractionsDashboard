@@ -1,5 +1,5 @@
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, mixins
 from rest_framework import permissions
 from rest_framework.exceptions import APIException
 from rest_framework.decorators import action
@@ -77,7 +77,10 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
 
-class InteractionViewSet(viewsets.ModelViewSet):
+class InteractionViewSet(mixins.CreateModelMixin,
+                         mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         viewsets.GenericViewSet):
     queryset = Interaction.objects.all()
     serializer_class = InteractionSerializer
     permission_classes = (IsAuthenticated,)

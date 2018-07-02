@@ -10,6 +10,5 @@
   "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_some_hcp_items",
   "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_update_engagement_plan",
   "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_create_interaction",
-  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_list_interactions",
-  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_update_interactions"
+  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_list_interactions"
 ]
