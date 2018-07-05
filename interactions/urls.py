@@ -36,7 +36,7 @@ router.register(r'interaction-outcomes', core_views.InteractionOutcomeViewSet)
 router.register(r'hcp-objectives', core_views.HCPObjectiveViewSet)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('djadmin/', admin.site.urls),
     path('nested_admin/', include('nested_admin.urls')),
     path('api/v1/', include([
         path('token/obtain/', obtain_jwt_token),
