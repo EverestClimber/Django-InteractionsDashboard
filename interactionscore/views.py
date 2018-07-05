@@ -238,12 +238,15 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
         #  EP belongs to a user)
         if user_id and engagement_plan_id:
             qs = qs.filter(
+                engagement_plan_item__approved=True,
                 engagement_plan_item__engagement_plan_id=engagement_plan_id,
                 engagement_plan_item__engagement_plan__user_id=user_id,
             )
         # get HCPObjs reference in this EP
         elif engagement_plan_id:
-            qs = qs.filter(engagement_plan_item__engagement_plan_id=engagement_plan_id)
+            qs = qs.filter(
+                engagement_plan_item__approved=True,
+                engagement_plan_item__engagement_plan_id=engagement_plan_id)
 
         return qs
 
