@@ -2,6 +2,7 @@ import pytest
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.utils import timezone
 
 from interactionscore.management.commands.setup_user_roles import (
     Command as SetupUserRolesCommand
@@ -12,7 +13,6 @@ from interactionscore.models import (
     EngagementPlan,
     Interaction,
     Project,
-    InteractionOutcome,
     Resource,
     TherapeuticArea,
 )
@@ -140,17 +140,12 @@ class BaseAPITestCase(APITestCase):
         cls.res2 = Resource.objects.create(url='http://www.test.org/file2.zip')
         cls.res3 = Resource.objects.create(url='http://www.test.co.uk/imh3/jpg')
 
-        # interaction outcomes
-        cls.iout1 = InteractionOutcome.objects.create(name='outcome 1')
-        cls.iout2 = InteractionOutcome.objects.create(name='outcome 2')
-        cls.iout3 = InteractionOutcome.objects.create(name='outcome 3')
-
         # interactions
         cls.inter1 = Interaction.objects.create(
             user=cls.user_msl1,
             hcp=cls.hcp1,
             project=cls.proj1,
             description='first interaction between MSL1 and HCP1',
+            time_of_interaction=timezone.now(),
         )
         cls.inter1.resources.set([cls.res1])
-        cls.inter1.outcomes.set([cls.iout3])

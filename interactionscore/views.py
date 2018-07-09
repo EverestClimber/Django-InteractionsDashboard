@@ -20,7 +20,6 @@ from .models import (
     Resource,
     Project,
     Interaction,
-    InteractionOutcome,
     HCPObjective,
     User,
 )
@@ -32,7 +31,6 @@ from .serializers import (
     EngagementPlanSerializer,
     HCPSerializer,
     InteractionSerializer,
-    InteractionOutcomeSerializer,
     UserSerializer,
     HCPObjectiveSerializer,
 )
@@ -131,12 +129,6 @@ class ResourceViewSet(viewsets.ModelViewSet):
             qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
 
         return qs
-
-
-class InteractionOutcomeViewSet(viewsets.ModelViewSet):
-    queryset = InteractionOutcome.objects.all()
-    serializer_class = InteractionOutcomeSerializer
-    permission_classes = (IsAuthenticated,)
 
 
 class HCPViewSet(viewsets.ModelViewSet):

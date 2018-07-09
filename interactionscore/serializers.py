@@ -16,7 +16,6 @@ from .models import (
     Resource,
     Project,
     Interaction,
-    InteractionOutcome,
     User,
 )
 
@@ -147,12 +146,6 @@ class ProjectSerializer(serializers.ModelSerializer):
 class TherapeuticAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = TherapeuticArea
-        fields = ('id', 'name')
-
-
-class InteractionOutcomeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = InteractionOutcome
         fields = ('id', 'name')
 
 
@@ -399,20 +392,24 @@ class InteractionSerializer(serializers.ModelSerializer):
             'user_id',
             'hcp',
             'hcp_id',
-            'description',
-            'purpose',
             'hcp_objective',
             'hcp_objective_id',
             'project',
             'project_id',
             'resources',
-            'outcomes',
+            'time_of_interaction',
+            'description',
+            'purpose',
             'is_joint_visit',
             'joint_visit_with',
+            'joint_visit_reason',
             'origin_of_interaction',
             'origin_of_interaction_other',
+            'type_of_interaction',
+            'is_proactive',
             'is_adverse_event',
             'appropriate_pv_procedures_followed',
+            'outcome',
             'is_follow_up_required',
         )
 

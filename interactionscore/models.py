@@ -251,13 +251,14 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True)
     project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True)
     resources = m.ManyToManyField('Resource', blank=True, related_name='interactions')
-    outcomes = m.ManyToManyField('InteractionOutcome', blank=True, related_name='interactions')
 
+    time_of_interaction = m.DateTimeField()
     description = m.TextField()
     purpose = m.TextField()
 
     is_joint_visit = m.BooleanField(default=False, verbose_name='Joint visit')
     joint_visit_with = m.TextField(blank=True)  # when is_joint_visit=True
+    joint_visit_reason = m.TextField(blank=True)  # when is_joint_visit=True
 
     class OriginOfInteraction(ChoiceEnum):
         medinfo_enquiry = 'MedInfo enquiry'
@@ -271,26 +272,24 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     class TypeOfInteraction(ChoiceEnum):
         phone = 'Phone'
         face_to_face = 'Face-to-face'
-        other = 'Email'
+        email = 'Email'
 
     type_of_interaction = m.CharField(max_length=255,
                                       choices=TypeOfInteraction.choices())
 
+    is_proactive = m.BooleanField(default=False)
+
     is_adverse_event = m.BooleanField(default=False, verbose_name='Adverse event')
     appropriate_pv_procedures_followed = m.NullBooleanField(default=False, null=True)  # when is_adverse_event=True
+
+    class Outcome(ChoiceEnum):
+        follow_up = 'Follow up'
+        no_further_actions = 'No further actions'
+
+    outcome = m.CharField(max_length=255,
+                          choices=Outcome.choices())
+
     is_follow_up_required = m.BooleanField(default=False, verbose_name='Follow up required')
-
-
-class InteractionOutcome(TimestampedModel, SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-
-    name = m.CharField(max_length=255, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
 class Project(TimestampedModel, SafeDeleteModel):
