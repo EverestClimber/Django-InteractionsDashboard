@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import uuid
 from django.utils import timezone
 from django.db import models as m
@@ -9,7 +10,7 @@ from safedelete.models import SafeDeleteModel
 from safedelete.managers import SafeDeleteManager
 from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
-from interactions.helpers import ChoiceEnum
+from interactions.helpers import ChoiceEnum, make_words_fields_query_expr
 
 # Core Business Logic Models
 #####################################################################
@@ -228,6 +229,24 @@ class HCP(TimestampedModel, SafeDeleteModel):
         return '{}(first_name="{}", last_name="{}")'.format(self.__class__.__name__,
                                                             self.first_name,
                                                             self.last_name)
+
+    @staticmethod
+    def add_full_text_search_to_query(query, search_str):
+        words = filter(
+            lambda s: s,
+            re.split(r'[,;\s]+', search_str)
+        )
+        if not words:
+            return query
+        filter_query_expr = make_words_fields_query_expr(
+            words,
+            (
+                'first_name', 'last_name', 'institution_name',
+                'city', 'country',
+            ),
+            mode='all'
+        )
+        return query.filter(filter_query_expr)
 
 
 class InteractionPerms(ChoiceEnum):

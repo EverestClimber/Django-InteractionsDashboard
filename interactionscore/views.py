@@ -148,6 +148,10 @@ class HCPViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, qs):
         qs = super().filter_queryset(qs)
 
+        #################################################
+        # Filtering
+        #################################################
+
         user_id = self.request.query_params.get('user', None)
         engagement_plan = self.request.query_params.get('engagement_plan', None)
 
@@ -182,6 +186,14 @@ class HCPViewSet(viewsets.ModelViewSet):
         # get HCPs reference in this EP
         elif engagement_plan_id:
             qs = qs.filter(engagementplanhcpitem__engagement_plan_id=engagement_plan_id)
+
+        #################################################
+        # Searching
+        #################################################
+
+        search = self.request.query_params.get('search', None)
+        if search:
+            qs = HCP.add_full_text_search_to_query(qs, search)
 
         return qs
 
