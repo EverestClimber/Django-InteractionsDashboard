@@ -204,6 +204,7 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
         qs = super().filter_queryset(qs)
 
         user_id = self.request.query_params.get('user', None)
+        hcp_id = self.request.query_params.get('hcp', None)
         engagement_plan = self.request.query_params.get('engagement_plan', None)
 
         if user_id and not engagement_plan:
@@ -211,10 +212,7 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
 
         engagement_plan_id = None
         if engagement_plan:
-            if engagement_plan == 'current':
-                if not user_id:
-                    raise APIException('user needs to be specified '
-                                       'when requesting current EngagementPlan')
+            if engagement_plan == 'current' and user_id:
                 eplan = EngagementPlan.objects.filter(
                     user_id=user_id,
                     year=timezone.now().year
@@ -224,6 +222,13 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
                 engagement_plan_id = eplan.id
             else:
                 engagement_plan_id = engagement_plan
+
+        if hcp_id:
+            qs = qs.filter(hcp_id=hcp_id)
+            if not user_id and engagement_plan == 'current':
+                qs = qs.filter(
+                    engagement_plan_item__engagement_plan___year=timezone.now().year,
+                )
 
         # get HCPObjs in user's current engagement plan
         # (or, in general, get HCPObjs referenced by an EP while also asserting

@@ -411,6 +411,10 @@ class InteractionSerializer(serializers.ModelSerializer):
             'appropriate_pv_procedures_followed',
             'outcome',
             'is_follow_up_required',
+            'created_at'
+        )
+        read_only_fields = (
+            'created_at',
         )
 
     def create(self, validated_data):
