@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 import uuid
 from django.utils import timezone
 from django.db import models as m
@@ -9,7 +10,7 @@ from safedelete.models import SafeDeleteModel
 from safedelete.managers import SafeDeleteManager
 from safedelete.models import SOFT_DELETE, SOFT_DELETE_CASCADE
 
-from interactions.helpers import ChoiceEnum
+from interactions.helpers import ChoiceEnum, make_words_fields_query_expr
 
 # Core Business Logic Models
 #####################################################################
@@ -229,6 +230,24 @@ class HCP(TimestampedModel, SafeDeleteModel):
                                                             self.first_name,
                                                             self.last_name)
 
+    @staticmethod
+    def add_full_text_search_to_query(query, search_str):
+        words = filter(
+            lambda s: s,
+            re.split(r'[,;\s]+', search_str)
+        )
+        if not words:
+            return query
+        filter_query_expr = make_words_fields_query_expr(
+            words,
+            (
+                'first_name', 'last_name', 'institution_name',
+                'city', 'country',
+            ),
+            mode='all'
+        )
+        return query.filter(filter_query_expr)
+
 
 class InteractionPerms(ChoiceEnum):
     list_all_interaction = 'Can list all Interactions'
@@ -251,13 +270,14 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True)
     project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True)
     resources = m.ManyToManyField('Resource', blank=True, related_name='interactions')
-    outcomes = m.ManyToManyField('InteractionOutcome', blank=True, related_name='interactions')
 
+    time_of_interaction = m.DateTimeField()
     description = m.TextField()
     purpose = m.TextField()
 
     is_joint_visit = m.BooleanField(default=False, verbose_name='Joint visit')
     joint_visit_with = m.TextField(blank=True)  # when is_joint_visit=True
+    joint_visit_reason = m.TextField(blank=True)  # when is_joint_visit=True
 
     class OriginOfInteraction(ChoiceEnum):
         medinfo_enquiry = 'MedInfo enquiry'
@@ -271,26 +291,24 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     class TypeOfInteraction(ChoiceEnum):
         phone = 'Phone'
         face_to_face = 'Face-to-face'
-        other = 'Email'
+        email = 'Email'
 
     type_of_interaction = m.CharField(max_length=255,
                                       choices=TypeOfInteraction.choices())
 
+    is_proactive = m.BooleanField(default=False)
+
     is_adverse_event = m.BooleanField(default=False, verbose_name='Adverse event')
     appropriate_pv_procedures_followed = m.NullBooleanField(default=False, null=True)  # when is_adverse_event=True
+
+    class Outcome(ChoiceEnum):
+        follow_up = 'Follow up'
+        no_further_actions = 'No further actions'
+
+    outcome = m.CharField(max_length=255,
+                          choices=Outcome.choices())
+
     is_follow_up_required = m.BooleanField(default=False, verbose_name='Follow up required')
-
-
-class InteractionOutcome(TimestampedModel, SafeDeleteModel):
-    _safedelete_policy = SOFT_DELETE_CASCADE
-
-    name = m.CharField(max_length=255, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
 class Project(TimestampedModel, SafeDeleteModel):

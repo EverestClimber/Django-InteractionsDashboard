@@ -20,7 +20,6 @@ from .models import (
     Resource,
     Project,
     Interaction,
-    InteractionOutcome,
     HCPObjective,
     User,
 )
@@ -32,7 +31,6 @@ from .serializers import (
     EngagementPlanSerializer,
     HCPSerializer,
     InteractionSerializer,
-    InteractionOutcomeSerializer,
     UserSerializer,
     HCPObjectiveSerializer,
 )
@@ -133,12 +131,6 @@ class ResourceViewSet(viewsets.ModelViewSet):
         return qs
 
 
-class InteractionOutcomeViewSet(viewsets.ModelViewSet):
-    queryset = InteractionOutcome.objects.all()
-    serializer_class = InteractionOutcomeSerializer
-    permission_classes = (IsAuthenticated,)
-
-
 class HCPViewSet(viewsets.ModelViewSet):
     """
     list:
@@ -155,6 +147,10 @@ class HCPViewSet(viewsets.ModelViewSet):
 
     def filter_queryset(self, qs):
         qs = super().filter_queryset(qs)
+
+        #################################################
+        # Filtering
+        #################################################
 
         user_id = self.request.query_params.get('user', None)
         engagement_plan = self.request.query_params.get('engagement_plan', None)
@@ -191,6 +187,14 @@ class HCPViewSet(viewsets.ModelViewSet):
         elif engagement_plan_id:
             qs = qs.filter(engagementplanhcpitem__engagement_plan_id=engagement_plan_id)
 
+        #################################################
+        # Searching
+        #################################################
+
+        search = self.request.query_params.get('search', None)
+        if search:
+            qs = HCP.add_full_text_search_to_query(qs, search)
+
         return qs
 
 
@@ -212,6 +216,7 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
         qs = super().filter_queryset(qs)
 
         user_id = self.request.query_params.get('user', None)
+        hcp_id = self.request.query_params.get('hcp', None)
         engagement_plan = self.request.query_params.get('engagement_plan', None)
 
         if user_id and not engagement_plan:
@@ -219,10 +224,7 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
 
         engagement_plan_id = None
         if engagement_plan:
-            if engagement_plan == 'current':
-                if not user_id:
-                    raise APIException('user needs to be specified '
-                                       'when requesting current EngagementPlan')
+            if engagement_plan == 'current' and user_id:
                 eplan = EngagementPlan.objects.filter(
                     user_id=user_id,
                     year=timezone.now().year
@@ -233,17 +235,27 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
             else:
                 engagement_plan_id = engagement_plan
 
+        if hcp_id:
+            qs = qs.filter(hcp_id=hcp_id)
+            if not user_id and engagement_plan == 'current':
+                qs = qs.filter(
+                    engagement_plan_item__engagement_plan___year=timezone.now().year,
+                )
+
         # get HCPObjs in user's current engagement plan
         # (or, in general, get HCPObjs referenced by an EP while also asserting
         #  EP belongs to a user)
         if user_id and engagement_plan_id:
             qs = qs.filter(
+                engagement_plan_item__approved=True,
                 engagement_plan_item__engagement_plan_id=engagement_plan_id,
                 engagement_plan_item__engagement_plan__user_id=user_id,
             )
         # get HCPObjs reference in this EP
         elif engagement_plan_id:
-            qs = qs.filter(engagement_plan_item__engagement_plan_id=engagement_plan_id)
+            qs = qs.filter(
+                engagement_plan_item__approved=True,
+                engagement_plan_item__engagement_plan_id=engagement_plan_id)
 
         return qs
 

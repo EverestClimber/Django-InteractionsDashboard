@@ -169,7 +169,6 @@ ADMIN_REORDER = (
          'interactionscore.HCP',
          'interactionscore.Project',
          'interactionscore.Resource',
-         'interactionscore.InteractionOutcome',
          'interactionscore.AffiliateGroup',
          'interactionscore.TherapeuticArea',
          'interactionscore.Comment',

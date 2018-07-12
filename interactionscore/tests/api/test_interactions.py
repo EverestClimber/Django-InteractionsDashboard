@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -44,7 +45,9 @@ class TestInteractionsAPI(BaseAPITestCase):
             'hcp_objective_id': hcp_obj.id,
             'project_id': self.proj1.id,
             'resources': [self.res1.id, self.res2.id],
-            'outcomes': [self.iout1.id, self.iout2.id],
+            'outcome': 'no_further_actions',
+            'type_of_interaction': 'face_to_face',
+            'time_of_interaction': timezone.now(),
         }
         res = self.client.post(reverse('interaction-list'), data)
         print_json('test_create_interaction: res', res.json())
@@ -55,42 +58,3 @@ class TestInteractionsAPI(BaseAPITestCase):
         assert 'id' in rdata
         assert rdata['user_id'] == self.user_msl1.id
         assert rdata['hcp_id'] == self.hcp1.id
-
-    # def test_update_interactions(self):
-    #     interaction_before_update = self.inter1
-    #     data = {
-    #         'description': 'updated interaction between MSL1 and HCP1',
-    #         'is_joint_visit': True,
-    #         'hcp_id': self.hcp2.id,
-    #         'resources': [self.res3.id, self.res2.id],
-    #         'outcomes': [self.iout3.id, self.iout2.id],
-    #     }
-    #     res = self.client.patch(
-    #         reverse('interaction-detail', args=[self.inter1.id]),
-    #         data)
-    #     print_json('test_update_interactions: res', res.json())
-    #     assert res.status_code // 100 == 2
-    #
-    #     rdata = res.json()
-    #
-    #     assert rdata['id'] == self.inter1.id
-    #
-    #     interaction_after_update = Interaction.objects.get(id=self.inter1.id)
-    #
-    #     assert interaction_before_update.description != rdata['description']
-    #
-    #     assert (rdata['description'] == data['description'] ==
-    #             interaction_after_update.description)
-    #
-    #     assert (rdata['is_joint_visit'] == data['is_joint_visit'] ==
-    #             interaction_after_update.is_joint_visit)
-    #
-    #     assert rdata['hcp_id'] == data['hcp_id'] == interaction_after_update.hcp_id
-    #
-    #     assert rdata['hcp']['id'] == data['hcp_id'] == interaction_after_update.hcp.id
-    #
-    #     assert (set(rdata['resources']) == set(rdata['resources']) ==
-    #             set(r.id for r in interaction_after_update.resources.all()))
-    #
-    #     assert (set(rdata['outcomes']) == set(rdata['outcomes']) ==
-    #             set(o.id for o in interaction_after_update.outcomes.all()))
