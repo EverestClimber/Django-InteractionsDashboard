@@ -308,6 +308,8 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     outcome = m.CharField(max_length=255,
                           choices=Outcome.choices())
 
+    follow_up_date = m.DateTimeField(null=True, blank=True)
+    follow_up_notes = m.CharField(max_length=255, blank=True)
     is_follow_up_required = m.BooleanField(default=False, verbose_name='Follow up required')
 
 

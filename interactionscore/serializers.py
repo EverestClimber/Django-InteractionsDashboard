@@ -187,6 +187,8 @@ class HCPSerializer(serializers.ModelSerializer):
             'contact_preference',
             'affiliate_groups',
             'tas',
+            'city',
+            'country',
             'created_at',
             'updated_at',
         )
@@ -410,6 +412,8 @@ class InteractionSerializer(serializers.ModelSerializer):
             'is_adverse_event',
             'appropriate_pv_procedures_followed',
             'outcome',
+            'follow_up_date',
+            'follow_up_notes',
             'is_follow_up_required',
             'created_at'
         )
