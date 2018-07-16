@@ -219,6 +219,8 @@ class HCP(TimestampedModel, SafeDeleteModel):
     contact_preference = m.CharField(max_length=255, null=True, blank=True,
                                      choices=ContactPreference.choices())
 
+    has_consented = m.BooleanField(default=False)
+
     city = m.CharField(max_length=255, blank=True)
     country = m.CharField(max_length=255, blank=True)
 

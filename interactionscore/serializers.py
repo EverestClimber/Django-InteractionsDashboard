@@ -189,6 +189,7 @@ class HCPSerializer(serializers.ModelSerializer):
             'tas',
             'city',
             'country',
+            'has_consented',
             'created_at',
             'updated_at',
         )
