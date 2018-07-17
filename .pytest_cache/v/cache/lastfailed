@@ -1,4 +1,15 @@
 {
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_approve_ep_all_hcp_items": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_approve_ep_all_hcp_items_by_id": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_approve_ep_some_hcp_items": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_create_engagement_plan": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_list_engagement_plans": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_all_hcp_items": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_all_hcp_items_by_id": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_unapprove_ep_some_hcp_items": true,
+  "interactionscore/tests/api/test_eps.py::TestEngagementPlansAPI::test_update_engagement_plan": true,
   "interactionscore/tests/api/test_eps.py::TestProductList::test_2": true,
+  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_create_interaction": true,
+  "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_list_interactions": true,
   "interactionscore/tests/api/test_interactions.py::TestInteractionsAPI::test_update_interactions": true
 }

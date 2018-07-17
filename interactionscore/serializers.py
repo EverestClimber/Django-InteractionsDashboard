@@ -401,7 +401,6 @@ class InteractionSerializer(serializers.ModelSerializer):
             'project_id',
             'resources',
             'time_of_interaction',
-            'description',
             'purpose',
             'is_joint_visit',
             'joint_visit_with',
@@ -412,10 +411,9 @@ class InteractionSerializer(serializers.ModelSerializer):
             'is_proactive',
             'is_adverse_event',
             'appropriate_pv_procedures_followed',
-            'outcome',
             'follow_up_date',
             'follow_up_notes',
-            'is_follow_up_required',
+            'no_follow_up_required',
             'created_at'
         )
         read_only_fields = (
