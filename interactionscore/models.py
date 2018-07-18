@@ -269,8 +269,8 @@ class Interaction(TimestampedModel, SafeDeleteModel):
                         # limit_choices_to={'groups__name': 'Role MSL'},
                         verbose_name='MSL')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
-    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True)
-    project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True)
+    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True, blank=True)
+    project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True, blank=True)
     resources = m.ManyToManyField('Resource', blank=True, related_name='interactions')
 
     time_of_interaction = m.DateTimeField()

@@ -384,9 +384,9 @@ class InteractionSerializer(serializers.ModelSerializer):
     hcp = HCPSerializer(required=False)
     hcp_id = serializers.IntegerField()
     hcp_objective = HCPObjectiveSerializer(required=False)
-    hcp_objective_id = serializers.IntegerField()
+    hcp_objective_id = serializers.IntegerField(required=False, allow_null=True)
     project = ProjectSerializer(required=False)
-    project_id = serializers.IntegerField()
+    project_id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = Interaction
