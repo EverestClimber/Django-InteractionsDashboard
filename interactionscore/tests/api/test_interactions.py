@@ -35,7 +35,6 @@ class TestInteractionsAPI(BaseAPITestCase):
             .objectives.get(description='hcp 1 obj 1 desc')
         data = {
             'hcp_id': self.hcp1.id,
-            'description': 'interaction between MSL1 and HCP1',
             'purpose': 'some purpose',
             'is_joint_visit': True,
             'joint_visit_with': 'Mrs Reaper Thanovsky',
@@ -45,7 +44,6 @@ class TestInteractionsAPI(BaseAPITestCase):
             'hcp_objective_id': hcp_obj.id,
             'project_id': self.proj1.id,
             'resources': [self.res1.id, self.res2.id],
-            'outcome': 'no_further_actions',
             'type_of_interaction': 'face_to_face',
             'time_of_interaction': timezone.now(),
         }

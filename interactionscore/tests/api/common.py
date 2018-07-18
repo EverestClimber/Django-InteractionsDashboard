@@ -145,7 +145,6 @@ class BaseAPITestCase(APITestCase):
             user=cls.user_msl1,
             hcp=cls.hcp1,
             project=cls.proj1,
-            description='first interaction between MSL1 and HCP1',
             time_of_interaction=timezone.now(),
         )
         cls.inter1.resources.set([cls.res1])

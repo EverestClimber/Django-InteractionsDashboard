@@ -75,9 +75,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if project_type:
             qs = qs.filter(type=project_type)
 
+        if not ta_ids and not self.request.user.is_staff:
+            ta_ids = self.request.user.tas.all()
         if ta_ids:
             qs = qs.filter(tas__in=ta_ids)
 
+        if not affiliate_group_ids and not self.request.user.is_staff:
+            affiliate_group_ids = self.request.user.affiliate_groups.all()
         if affiliate_group_ids:
             qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
 
@@ -122,9 +126,13 @@ class ResourceViewSet(viewsets.ModelViewSet):
                 Q(affiliate_groups__in=user.affiliate_groups.all())
             )
 
+        if not ta_ids and not self.request.user.is_staff:
+            ta_ids = self.request.user.tas.all()
         if ta_ids:
             qs = qs.filter(tas__in=ta_ids)
 
+        if not affiliate_group_ids and not self.request.user.is_staff:
+            affiliate_group_ids = self.request.user.affiliate_groups.all()
         if affiliate_group_ids:
             qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
 
@@ -186,6 +194,12 @@ class HCPViewSet(viewsets.ModelViewSet):
         # get HCPs reference in this EP
         elif engagement_plan_id:
             qs = qs.filter(engagementplanhcpitem__engagement_plan_id=engagement_plan_id)
+
+        if not self.request.user.is_staff:
+            qs = qs.filter(
+                affiliate_groups__in=self.request.user.affiliate_groups.all(),
+                tas__in=self.request.user.tas.all(),
+            )
 
         #################################################
         # Searching
