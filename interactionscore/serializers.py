@@ -380,6 +380,30 @@ class EngagementPlanSerializer(NestedWritableFieldsSerializerMixin, serializers.
         return super().create(validated_data)
 
 
+class UserSerializer(serializers.ModelSerializer):
+    group_names = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'group_names',
+            'permissions',
+            'first_name',
+            'last_name',
+            'affiliate_groups',
+            'tas',
+        )
+
+    def get_group_names(self, user):
+        return [group.name for group in user.groups.all()]
+
+    def get_permissions(self, user):
+        return user.get_all_permissions()
+
+
 class InteractionSerializer(serializers.ModelSerializer):
     hcp = HCPSerializer(required=False)
     hcp_id = serializers.IntegerField()
@@ -387,12 +411,14 @@ class InteractionSerializer(serializers.ModelSerializer):
     hcp_objective_id = serializers.IntegerField(required=False, allow_null=True)
     project = ProjectSerializer(required=False)
     project_id = serializers.IntegerField(required=False, allow_null=True)
+    user = UserSerializer(required=False)
 
     class Meta:
         model = Interaction
         fields = (
             'id',
             'user_id',
+            'user',
             'hcp',
             'hcp_id',
             'hcp_objective',
@@ -428,24 +454,3 @@ class InteractionSerializer(serializers.ModelSerializer):
 
         return super().create(validated_data)
 
-
-class UserSerializer(serializers.ModelSerializer):
-    group_names = serializers.SerializerMethodField()
-    permissions = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'email',
-            'group_names',
-            'permissions',
-            'affiliate_groups',
-            'tas',
-        )
-
-    def get_group_names(self, user):
-        return [group.name for group in user.groups.all()]
-
-    def get_permissions(self, user):
-        return user.get_all_permissions()
