@@ -85,7 +85,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if affiliate_group_ids:
             qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
 
-        return qs
+        return qs.distinct()
 
 
 class TherapeuticAreaViewSet(viewsets.ModelViewSet):
@@ -136,7 +136,7 @@ class ResourceViewSet(viewsets.ModelViewSet):
         if affiliate_group_ids:
             qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
 
-        return qs
+        return qs.distinct()
 
 
 class HCPViewSet(viewsets.ModelViewSet):
@@ -209,7 +209,7 @@ class HCPViewSet(viewsets.ModelViewSet):
         if search:
             qs = HCP.add_full_text_search_to_query(qs, search)
 
-        return qs
+        return qs.distinct()
 
 
 class HCPObjectiveViewSet(viewsets.ModelViewSet):
@@ -271,7 +271,7 @@ class HCPObjectiveViewSet(viewsets.ModelViewSet):
                 engagement_plan_item__approved=True,
                 engagement_plan_item__engagement_plan_id=engagement_plan_id)
 
-        return qs
+        return qs.distinct()
 
 
 class InteractionViewSet(mixins.CreateModelMixin,
