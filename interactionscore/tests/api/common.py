@@ -86,7 +86,7 @@ class BaseAPITestCase(APITestCase):
             year=2018,
         )
         # HCP items
-        ep1_hcp_item1 = cls.ep1.hcp_items.create(hcp=cls.hcp1)
+        ep1_hcp_item1 = cls.ep1.hcp_items.create(hcp=cls.hcp1, reason='other')
         ep1_hcp_item1_obj1 = ep1_hcp_item1.objectives.create(
             hcp=cls.hcp1, description='hcp 1 obj 1 desc')
         ep1_hcp_item1_obj1.deliverables.create(quarter=1, description='q1 deliverable desc')
@@ -98,7 +98,7 @@ class BaseAPITestCase(APITestCase):
         ep1_hcp_item1_obj2.deliverables.create(quarter=2, description='q2 deliverable desc')
         ep1_hcp_item1_obj2.deliverables.create(quarter=3, description='q3 deliverable desc')
         ep1_hcp_item1_obj2.deliverables.create(quarter=4, description='q4 deliverable desc')
-        ep1_hcp_item2 = cls.ep1.hcp_items.create(hcp=cls.hcp2)
+        ep1_hcp_item2 = cls.ep1.hcp_items.create(hcp=cls.hcp2, reason='other')
         ep1_hcp_item2_obj = ep1_hcp_item2.objectives.create(
             hcp=cls.hcp2, description='hcp 2 obj desc')
         ep1_hcp_item2_obj.deliverables.create(quarter=2, description='q2 deliverable desc')

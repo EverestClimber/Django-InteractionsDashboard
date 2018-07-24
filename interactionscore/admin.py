@@ -24,6 +24,8 @@ from .models import (
     User,
     Interaction,
     Resource,
+    BrandCriticalSuccessFactor,
+    MedicalPlanObjective,
 )
 
 admin.site.site_header = "Otsuka Interactions Admin"
@@ -34,6 +36,20 @@ admin.site.index_title = "Welcome to Otsuka Interactions Admin"
 @admin.register(AffiliateGroup)
 class AffiliateGroupAdmin(SafeDeleteAdmin):
     model = AffiliateGroup
+    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
+
+
+@admin.register(BrandCriticalSuccessFactor)
+class BrandCriticalSuccessFactorAdmin(SafeDeleteAdmin):
+    model = BrandCriticalSuccessFactor
+    list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
+    list_filter = SafeDeleteAdmin.list_filter
+
+
+@admin.register(MedicalPlanObjective)
+class MedicalPlanObjectiveAdmin(SafeDeleteAdmin):
+    model = MedicalPlanObjective
     list_display = (highlight_deleted, "name") + SafeDeleteAdmin.list_display
     list_filter = SafeDeleteAdmin.list_filter
 

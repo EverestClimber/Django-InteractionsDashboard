@@ -22,6 +22,8 @@ from .models import (
     Interaction,
     HCPObjective,
     User,
+    BrandCriticalSuccessFactor,
+    MedicalPlanObjective,
 )
 from .serializers import (
     AffiliateGroupSerializer,
@@ -33,6 +35,8 @@ from .serializers import (
     InteractionSerializer,
     UserSerializer,
     HCPObjectiveSerializer,
+    BrandCriticalSuccessFactorSerializer,
+    MedicalPlanObjectiveSerializer,
 )
 
 
@@ -40,6 +44,70 @@ class AffiliateGroupViewSet(viewsets.ModelViewSet):
     queryset = AffiliateGroup.objects.all()
     serializer_class = AffiliateGroupSerializer
     permission_classes = (IsAuthenticated,)
+
+
+class BrandCriticalSuccessFactorViewSet(viewsets.ModelViewSet):
+    queryset = BrandCriticalSuccessFactor.objects.all()
+    serializer_class = BrandCriticalSuccessFactorSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def filter_queryset(self, qs):
+        qs = super().filter_queryset(qs)
+
+        user_id = self.request.query_params.get('user', None)
+        ta_ids = self.request.query_params.get('tas', None)
+        if ta_ids:
+            ta_ids = ta_ids.split(',')
+        affiliate_group_ids = self.request.query_params.get('affiliate_groups', None)
+        if affiliate_group_ids:
+            affiliate_group_ids = affiliate_group_ids.split(',')
+
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+
+        if not ta_ids and not self.request.user.is_staff:
+            ta_ids = self.request.user.tas.all()
+        if ta_ids:
+            qs = qs.filter(tas__in=ta_ids)
+
+        if not affiliate_group_ids and not self.request.user.is_staff:
+            affiliate_group_ids = self.request.user.affiliate_groups.all()
+        if affiliate_group_ids:
+            qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
+
+        return qs.distinct()
+
+
+class MedicalPlanObjectiveSerializerViewSet(viewsets.ModelViewSet):
+    queryset = MedicalPlanObjective.objects.all()
+    serializer_class = MedicalPlanObjectiveSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def filter_queryset(self, qs):
+        qs = super().filter_queryset(qs)
+
+        user_id = self.request.query_params.get('user', None)
+        ta_ids = self.request.query_params.get('tas', None)
+        if ta_ids:
+            ta_ids = ta_ids.split(',')
+        affiliate_group_ids = self.request.query_params.get('affiliate_groups', None)
+        if affiliate_group_ids:
+            affiliate_group_ids = affiliate_group_ids.split(',')
+
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+
+        if not ta_ids and not self.request.user.is_staff:
+            ta_ids = self.request.user.tas.all()
+        if ta_ids:
+            qs = qs.filter(tas__in=ta_ids)
+
+        if not affiliate_group_ids and not self.request.user.is_staff:
+            affiliate_group_ids = self.request.user.affiliate_groups.all()
+        if affiliate_group_ids:
+            qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
+
+        return qs.distinct()
 
 
 class ProjectViewSet(viewsets.ModelViewSet):

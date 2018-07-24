@@ -17,6 +17,8 @@ from .models import (
     Project,
     Interaction,
     User,
+    BrandCriticalSuccessFactor,
+    MedicalPlanObjective,
 )
 
 
@@ -124,6 +126,40 @@ class AffiliateGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = AffiliateGroup
         fields = ('id', 'name')
+
+
+class BrandCriticalSuccessFactorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BrandCriticalSuccessFactor
+        fields = (
+            'id',
+            'name',
+            'ta_id',
+            'affiliate_groups',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
+        )
+
+
+class MedicalPlanObjectiveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MedicalPlanObjective
+        fields = (
+            'id',
+            'name',
+            'ta_id',
+            'affiliate_groups',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
+        )
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -302,11 +338,13 @@ class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, seria
             'engagement_plan_id',
             'hcp',
             'hcp_id',
+            'objectives',
+            'reason',
+            'reason_other',
             'approved',
             'approved_at',
             'created_at',
             'updated_at',
-            'objectives'
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
         nested_fields = {

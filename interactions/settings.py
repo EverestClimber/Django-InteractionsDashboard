@@ -172,6 +172,8 @@ ADMIN_REORDER = (
          'interactionscore.AffiliateGroup',
          'interactionscore.TherapeuticArea',
          'interactionscore.Comment',
+         'interactionscore.BrandCriticalSuccessFactor',
+         'interactionscore.MedicalPlanObjective',
      )},
 
 

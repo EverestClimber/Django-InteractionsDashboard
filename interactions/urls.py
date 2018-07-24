@@ -33,6 +33,8 @@ router.register(r'projects', core_views.ProjectViewSet)
 router.register(r'therapeutic-areas', core_views.TherapeuticAreaViewSet)
 router.register(r'resources', core_views.ResourceViewSet)
 router.register(r'hcp-objectives', core_views.HCPObjectiveViewSet)
+router.register(r'brand-critical-success-factors', core_views.BrandCriticalSuccessFactorViewSet)
+router.register(r'medical-plan-objectives', core_views.MedicalPlanObjectiveSerializerViewSet)
 
 urlpatterns = [
     path('djadmin/', admin.site.urls),

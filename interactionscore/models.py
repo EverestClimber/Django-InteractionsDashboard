@@ -55,6 +55,38 @@ class AffiliateGroup(TimestampedModel, SafeDeleteModel):
         return '{}(name="{}")'.format(self.__class__.__name__, self.name)
 
 
+class BrandCriticalSuccessFactor(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
+    ta = m.ForeignKey('TherapeuticArea', on_delete=m.SET_NULL,
+                      null=True, blank=True)
+    affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True)
+
+    name = m.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
+
+
+class MedicalPlanObjective(TimestampedModel, SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE
+
+    ta = m.ForeignKey('TherapeuticArea', on_delete=m.SET_NULL,
+                      null=True, blank=True)
+    affiliate_groups = m.ManyToManyField(AffiliateGroup, blank=True)
+
+    name = m.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return '{}(name="{}")'.format(self.__class__.__name__, self.name)
+
+
 class Comment(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
@@ -115,6 +147,15 @@ class EngagementPlanHCPItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
                                    related_name='hcp_items')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+
+    class Reason(ChoiceEnum):
+        reason1 = 'Reason 1'
+        reason2 = 'Reason 2'
+        other = 'Other'
+
+    reason = m.CharField(max_length=255,
+                         choices=Reason.choices())
+    reason_other = m.CharField(max_length=255, blank=True)  # when reason="other"
 
 
 class EngagementPlanProjectItem(TimestampedModel, SafeDeleteModel):

@@ -39,6 +39,7 @@ class TestEngagementPlansAPI(BaseAPITestCase):
             "year": 2018,
             "hcp_items": [
                 {"hcp_id": self.hcp1.id,
+                 "reason": "other",
                  "objectives": [
                      {"description": "objective of hcp #1", "hcp_id": self.hcp1.id,
                       "deliverables": [
@@ -48,6 +49,7 @@ class TestEngagementPlansAPI(BaseAPITestCase):
                       ]}
                  ]},
                 {"hcp_id": self.hcp2.id,
+                 "reason": "other",
                  "objectives": [
                      {"description": "objective 1 of hcp #2", "hcp_id": self.hcp2.id,
                       "deliverables": [
@@ -182,6 +184,7 @@ class TestEngagementPlansAPI(BaseAPITestCase):
                 # ...delete hcp2 (by not passing it here!)
                 # create new item for hcp3
                 {"hcp_id": self.hcp3.id,
+                 "reason": "other",
                  "objectives": [
                      {"description": "objective 1 of hcp #3", "hcp_id": self.hcp3.id,
                       "deliverables": [
