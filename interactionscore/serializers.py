@@ -251,7 +251,7 @@ class HCPDeliverableSerializer(serializers.ModelSerializer):
 
 
 class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.ModelSerializer):
-    hcp_id = serializers.IntegerField(required=False)
+    hcp_id = serializers.IntegerField()
     engagement_plan_item_id = serializers.IntegerField(required=False)
     deliverables = HCPDeliverableSerializer(many=True)
 

@@ -55,9 +55,8 @@ class BrandCriticalSuccessFactorViewSet(viewsets.ModelViewSet):
         qs = super().filter_queryset(qs)
 
         user_id = self.request.query_params.get('user', None)
-        ta_ids = self.request.query_params.get('tas', None)
-        if ta_ids:
-            ta_ids = ta_ids.split(',')
+        ta_id = self.request.query_params.get('ta', None)
+
         affiliate_group_ids = self.request.query_params.get('affiliate_groups', None)
         if affiliate_group_ids:
             affiliate_group_ids = affiliate_group_ids.split(',')
@@ -65,10 +64,10 @@ class BrandCriticalSuccessFactorViewSet(viewsets.ModelViewSet):
         if user_id:
             qs = qs.filter(user_id=user_id)
 
-        if not ta_ids and not self.request.user.is_staff:
-            ta_ids = self.request.user.tas.all()
-        if ta_ids:
-            qs = qs.filter(tas__in=ta_ids)
+        if not ta_id and not self.request.user.is_staff:
+            qs = qs.filter(ta_id__in=self.request.user.tas.all())
+        else:
+            qs = qs.filter(ta_id=ta_id)
 
         if not affiliate_group_ids and not self.request.user.is_staff:
             affiliate_group_ids = self.request.user.affiliate_groups.all()
@@ -78,7 +77,7 @@ class BrandCriticalSuccessFactorViewSet(viewsets.ModelViewSet):
         return qs.distinct()
 
 
-class MedicalPlanObjectiveSerializerViewSet(viewsets.ModelViewSet):
+class MedicalPlanObjectiveViewSet(viewsets.ModelViewSet):
     queryset = MedicalPlanObjective.objects.all()
     serializer_class = MedicalPlanObjectiveSerializer
     permission_classes = (IsAuthenticated,)
@@ -87,9 +86,8 @@ class MedicalPlanObjectiveSerializerViewSet(viewsets.ModelViewSet):
         qs = super().filter_queryset(qs)
 
         user_id = self.request.query_params.get('user', None)
-        ta_ids = self.request.query_params.get('tas', None)
-        if ta_ids:
-            ta_ids = ta_ids.split(',')
+        ta_id = self.request.query_params.get('ta', None)
+
         affiliate_group_ids = self.request.query_params.get('affiliate_groups', None)
         if affiliate_group_ids:
             affiliate_group_ids = affiliate_group_ids.split(',')
@@ -97,10 +95,10 @@ class MedicalPlanObjectiveSerializerViewSet(viewsets.ModelViewSet):
         if user_id:
             qs = qs.filter(user_id=user_id)
 
-        if not ta_ids and not self.request.user.is_staff:
-            ta_ids = self.request.user.tas.all()
-        if ta_ids:
-            qs = qs.filter(tas__in=ta_ids)
+        if not ta_id and not self.request.user.is_staff:
+            qs = qs.filter(ta_id__in=self.request.user.tas.all())
+        else:
+            qs = qs.filter(ta_id=ta_id)
 
         if not affiliate_group_ids and not self.request.user.is_staff:
             affiliate_group_ids = self.request.user.affiliate_groups.all()
@@ -128,6 +126,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def filter_queryset(self, qs):
         qs = super().filter_queryset(qs)
 
+        #################################################
+        # Filtering
+        #################################################
+
         user_id = self.request.query_params.get('user', None)
         project_type = self.request.query_params.get('type', None)
         ta_ids = self.request.query_params.get('tas', None)
@@ -152,6 +154,14 @@ class ProjectViewSet(viewsets.ModelViewSet):
             affiliate_group_ids = self.request.user.affiliate_groups.all()
         if affiliate_group_ids:
             qs = qs.filter(affiliate_groups__in=affiliate_group_ids)
+
+        #################################################
+        # Searching
+        #################################################
+
+        search = self.request.query_params.get('search', None)
+        if search:
+            qs = Project.add_full_text_search_to_query(qs, search)
 
         return qs.distinct()
 

@@ -137,7 +137,7 @@ class HCPObjectiveInline(nested_admin.NestedStackedInline):
 
 class EngagementPlanHCPItemInline(nested_admin.NestedStackedInline):
     model = EngagementPlanHCPItem
-    fields = ('hcp', 'approved',)
+    fields = ('hcp', 'reason', 'reason_other', 'approved',)
     extra = 0
     inlines = (HCPObjectiveInline, CommentInline)
 

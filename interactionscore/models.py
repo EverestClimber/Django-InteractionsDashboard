@@ -172,6 +172,12 @@ class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
     engagement_plan_item = m.ForeignKey(EngagementPlanHCPItem, on_delete=m.CASCADE,
                                         related_name='objectives')
     hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+    bcsf = m.ForeignKey('BrandCriticalSuccessFactor', on_delete=m.CASCADE,
+                        null=True, blank=True)
+    medical_plan_objective = m.ForeignKey('MedicalPlanObjective', on_delete=m.CASCADE,
+                                          null=True, blank=True)
+    project = m.ForeignKey('Project', on_delete=m.CASCADE,
+                           null=True, blank=True)
 
     description = m.TextField()
 
@@ -371,6 +377,23 @@ class Project(TimestampedModel, SafeDeleteModel):
 
     def __repr__(self):
         return '{}(title="{}")'.format(self.__class__.__name__, self.name)
+
+    @staticmethod
+    def add_full_text_search_to_query(query, search_str):
+        words = filter(
+            lambda s: s,
+            re.split(r'[,;\s]+', search_str)
+        )
+        if not words:
+            return query
+        filter_query_expr = make_words_fields_query_expr(
+            words,
+            (
+                'title',
+            ),
+            mode='all'
+        )
+        return query.filter(filter_query_expr)
 
 
 def make_resource_filepath(instance, filename):
