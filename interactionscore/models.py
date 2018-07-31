@@ -203,8 +203,8 @@ QUARTERS_CHOICES = (
 class HCPDeliverable(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
-    class Meta:
-        unique_together = (('quarter', 'objective'),)
+    # class Meta:
+    #     unique_together = (('quarter', 'objective'),)
 
     objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE,
                              related_name='deliverables')
@@ -224,8 +224,8 @@ class HCPDeliverable(TimestampedModel, SafeDeleteModel):
 class ProjectDeliverable(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
-    class Meta:
-        unique_together = (('quarter', 'objective'),)
+    # class Meta:
+    #     unique_together = (('quarter', 'objective'),)
 
     objective = m.ForeignKey(ProjectObjective, on_delete=m.CASCADE,
                              related_name='deliverables')
