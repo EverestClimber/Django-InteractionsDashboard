@@ -107,7 +107,7 @@ class CommentInline(nested_admin.NestedStackedInline):
 
 class ProjectDeliverableInline(nested_admin.NestedTabularInline):
     model = ProjectDeliverable
-    fields = ('quarter', 'description')
+    fields = ('quarter', 'description', 'status')
     extra = 0
 
 
@@ -122,7 +122,7 @@ class ProjectObjectiveInline(nested_admin.NestedStackedInline):
 
 class HCPDeliverableInline(nested_admin.NestedTabularInline):
     model = HCPDeliverable
-    fields = ('quarter', 'description')
+    fields = ('quarter', 'description', 'status')
     extra = 0
 
 

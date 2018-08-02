@@ -1,4 +1,4 @@
-import datetime
+import math
 import os
 import re
 import uuid
@@ -157,6 +157,9 @@ class EngagementPlanHCPItem(TimestampedModel, ApprovableModel, SafeDeleteModel):
                          choices=Reason.choices())
     reason_other = m.CharField(max_length=255, blank=True)  # when reason="other"
 
+    removed_at = m.DateTimeField(null=True, blank=True)
+    reason_removed = m.CharField(max_length=255, blank=True)
+
 
 class EngagementPlanProjectItem(TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE_CASCADE
@@ -164,6 +167,9 @@ class EngagementPlanProjectItem(TimestampedModel, SafeDeleteModel):
     engagement_plan = m.ForeignKey(EngagementPlan, on_delete=m.CASCADE,
                                    related_name='project_items')
     project = m.ForeignKey('Project', on_delete=m.CASCADE)
+
+    removed_at = m.DateTimeField(null=True, blank=True)
+    reason_removed = m.CharField(max_length=255, blank=True)
 
 
 class HCPObjective(TimestampedModel, ApprovableModel, SafeDeleteModel):
@@ -200,7 +206,34 @@ QUARTERS_CHOICES = (
 )
 
 
-class HCPDeliverable(TimestampedModel, SafeDeleteModel):
+class Deliverable(m.Model):
+    class Meta:
+        abstract = True
+
+    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
+    description = m.CharField(max_length=255, blank=True)
+
+    class Status(ChoiceEnum):
+        on_track = 'On Track'
+        slightly_behind = 'Slightly Behind'
+        major_issue = 'Major Issue'
+
+    status = m.CharField(max_length=255, null=True, blank=True,
+                         choices=Status.choices())
+
+    @property
+    def quarter_type(self):
+        if not hasattr(self, '_current_quarter'):
+            self._current_quarter = math.ceil(timezone.now().month / 3.0)
+        if self.quarter == self._current_quarter:
+            return 'current'
+        elif self.quarter > self._current_quarter:
+            return 'future'
+        else:
+            return 'past'
+
+
+class HCPDeliverable(Deliverable, TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
     # class Meta:
@@ -209,19 +242,8 @@ class HCPDeliverable(TimestampedModel, SafeDeleteModel):
     objective = m.ForeignKey(HCPObjective, on_delete=m.CASCADE,
                              related_name='deliverables')
 
-    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
-    description = m.CharField(max_length=255, blank=True)
 
-    class Status(ChoiceEnum):
-        on_track = 'On Track'
-        slightly_behind = 'Slightly Behind'
-        major_issue = 'Major Issue'
-
-    status = m.CharField(max_length=255, null=True, blank=True,
-                         choices=Status.choices())
-
-
-class ProjectDeliverable(TimestampedModel, SafeDeleteModel):
+class ProjectDeliverable(Deliverable, TimestampedModel, SafeDeleteModel):
     _safedelete_policy = SOFT_DELETE
 
     # class Meta:
@@ -229,17 +251,6 @@ class ProjectDeliverable(TimestampedModel, SafeDeleteModel):
 
     objective = m.ForeignKey(ProjectObjective, on_delete=m.CASCADE,
                              related_name='deliverables')
-
-    quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
-    description = m.CharField(max_length=255, blank=True)
-
-    class Status(ChoiceEnum):
-        on_track = 'On Track'
-        slightly_behind = 'Slightly Behind'
-        major_issue = 'Major Issue'
-
-    status = m.CharField(max_length=255, null=True, blank=True,
-                         choices=Status.choices())
 
 
 class HCP(TimestampedModel, SafeDeleteModel):

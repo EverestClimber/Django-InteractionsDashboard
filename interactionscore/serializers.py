@@ -244,6 +244,7 @@ class HCPDeliverableSerializer(serializers.ModelSerializer):
             'id',
             'objective_id',
             'quarter',
+            'quarter_type',
             'description',
             'status',
         )
@@ -254,6 +255,9 @@ class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.Mo
     hcp_id = serializers.IntegerField()
     engagement_plan_item_id = serializers.IntegerField(required=False)
     deliverables = HCPDeliverableSerializer(many=True)
+    bcsf_id = serializers.IntegerField(allow_null=True, required=False)
+    medical_plan_objective_id = serializers.IntegerField(allow_null=True, required=False)
+    project_id = serializers.IntegerField(allow_null=True, required=False)
 
     class Meta:
         model = HCPObjective
@@ -262,6 +266,9 @@ class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.Mo
             'engagement_plan_item_id',
             'hcp_id',
             'description',
+            'bcsf_id',
+            'medical_plan_objective_id',
+            'project_id',
             'deliverables',
             'created_at',
             'updated_at',
@@ -290,6 +297,7 @@ class ProjectDeliverableSerializer(serializers.ModelSerializer):
             'id',
             'objective_id',
             'quarter',
+            'quarter_type',
             'description',
             'status',
         )
@@ -341,6 +349,8 @@ class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, seria
             'objectives',
             'reason',
             'reason_other',
+            'removed_at',
+            'reason_removed',
             'approved',
             'approved_at',
             'created_at',
@@ -368,6 +378,8 @@ class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixi
             'engagement_plan_id',
             'project',
             'project_id',
+            'removed_at',
+            'reason_removed',
             'created_at',
             'updated_at',
             'objectives'
