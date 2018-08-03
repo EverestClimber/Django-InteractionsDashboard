@@ -21,6 +21,7 @@ RESOURCES_DIR = 'resources'
 class TimestampedModel(m.Model):
     class Meta:
         abstract = True
+        ordering = ['created_at']
 
     created_at = m.DateTimeField(db_index=True, auto_now_add=True)
     updated_at = m.DateTimeField(auto_now=True)
@@ -209,6 +210,7 @@ QUARTERS_CHOICES = (
 class Deliverable(m.Model):
     class Meta:
         abstract = True
+        ordering = ['quarter', 'created_at']
 
     quarter = m.PositiveSmallIntegerField(choices=QUARTERS_CHOICES)
     description = m.CharField(max_length=255, blank=True)
