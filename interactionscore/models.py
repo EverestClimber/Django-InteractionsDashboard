@@ -101,14 +101,53 @@ class Comment(TimestampedModel, SafeDeleteModel):
     engagement_plan_project_item = m.ForeignKey('EngagementPlanProjectItem', on_delete=m.CASCADE,
                                                 null=True, blank=True,
                                                 related_name='comments')
+    hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.CASCADE,
+                                 null=True, blank=True, related_name='comments')
+    project_objective = m.ForeignKey('ProjectObjective', on_delete=m.CASCADE,
+                                     null=True, blank=True, related_name='comments')
+    hcp_deliverable = m.ForeignKey('HCPDeliverable', on_delete=m.CASCADE,
+                                   null=True, blank=True, related_name='comments')
+    project_deliverable = m.ForeignKey('ProjectDeliverable', on_delete=m.CASCADE,
+                                       null=True, blank=True, related_name='comments')
     message = m.TextField()
 
     def __str__(self):
+        on_str = []
+        if self.engagement_plan_hcp_item:
+            on_str.append('on EP HCP {} {}'.format(
+                self.engagement_plan_hcp_item.hcp.first_name,
+                self.engagement_plan_hcp_item.hcp.last_name
+            ))
+        if self.engagement_plan_project_item:
+            on_str.append('on EP Project {}'.format(
+                self.engagement_plan_project_item.project.title,
+            ))
+        if self.hcp_objective:
+            on_str.append('on HCP Objective #{} of HCP {} {}'.format(
+                self.hcp_objective.id,
+                self.hcp_objective.hcp.first_name,
+                self.hcp_objective.hcp.last_name,
+            ))
+        if self.project_objective:
+            on_str.append('on Project Objective #{} of Project {}'.format(
+                self.project_objective.id,
+                self.project_objective.project.title,
+            ))
+        if self.hcp_deliverable:
+            on_str.append('on HCP Deliverable #{} of HCP {} {}'.format(
+                self.hcp_deliverable.id,
+                self.hcp_deliverable.hcp.first_name,
+                self.hcp_deliverable.hcp.last_name,
+            ))
+        if self.project_deliverable:
+            on_str.append('on Project Objective #{} of Project {}'.format(
+                self.project_deliverable.id,
+                self.project_deliverable.project.title,
+            ))
+
         return '{by} {on} @ {at}'.format(
             by=('by {}'.format(self.user.email) if self.user else ''),
-            on=('on ELItem #{}'.format(self.engagement_list_item.id) if self.engagement_list_item else (
-                ('on HCPObjective #{}'.format(self.hcp_objective.id) if self.hcp_objective else '')
-            )),
+            on=", ".join(on_str),
             at=self.created_at
         )
 
@@ -138,8 +177,8 @@ class EngagementPlan(TimestampedModel, ApprovableModel, SafeDeleteModel):
     year = m.IntegerField()
 
     def __str__(self):
-        return "{} / {}".format(self.user.email if self.user else '',
-                                self.year)
+        return "{} / {} ({})".format(
+            self.user.email if self.user else '', self.year, self.id)
 
 
 class EngagementPlanHCPItem(TimestampedModel, ApprovableModel, SafeDeleteModel):

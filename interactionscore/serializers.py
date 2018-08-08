@@ -2,6 +2,7 @@ from django.utils.text import camel_case_to_spaces
 from rest_framework import serializers
 from collections import defaultdict, OrderedDict
 from .models import (
+    Comment,
     EngagementPlan,
     EngagementPlanHCPItem,
     EngagementPlanProjectItem,
@@ -122,10 +123,55 @@ class NestedWritableFieldsSerializerMixin:
         return parent_field_name
 
 
+class UserSerializer(serializers.ModelSerializer):
+    group_names = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'group_names',
+            'permissions',
+            'first_name',
+            'last_name',
+            'affiliate_groups',
+            'tas',
+        )
+
+    def get_group_names(self, user):
+        return [group.name for group in user.groups.all()]
+
+    def get_permissions(self, user):
+        return user.get_all_permissions()
+
+
 class AffiliateGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = AffiliateGroup
         fields = ('id', 'name')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(required=False, read_only=True)
+    user = UserSerializer(required=False, read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'user_id',
+            'user',
+            'engagement_plan',
+            'engagement_plan_hcp_item',
+            'engagement_plan_project_item',
+            'hcp_objective',
+            'project_objective',
+            'hcp_deliverable',
+            'project_deliverable',
+            'message',
+        )
 
 
 class BrandCriticalSuccessFactorSerializer(serializers.ModelSerializer):
@@ -237,6 +283,7 @@ class HCPSerializer(serializers.ModelSerializer):
 
 class HCPDeliverableSerializer(serializers.ModelSerializer):
     objective_id = serializers.IntegerField(required=False)
+    comments = CommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = HCPDeliverable
@@ -247,6 +294,7 @@ class HCPDeliverableSerializer(serializers.ModelSerializer):
             'quarter_type',
             'description',
             'status',
+            'comments',
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
 
@@ -258,6 +306,7 @@ class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.Mo
     bcsf_id = serializers.IntegerField(allow_null=True, required=False)
     medical_plan_objective_id = serializers.IntegerField(allow_null=True, required=False)
     project_id = serializers.IntegerField(allow_null=True, required=False)
+    comments = CommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = HCPObjective
@@ -270,6 +319,7 @@ class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.Mo
             'medical_plan_objective_id',
             'project_id',
             'deliverables',
+            'comments',
             'created_at',
             'updated_at',
         )
@@ -290,6 +340,7 @@ class HCPObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializers.Mo
 
 class ProjectDeliverableSerializer(serializers.ModelSerializer):
     objective_id = serializers.IntegerField(required=False)
+    comments = CommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = ProjectDeliverable
@@ -300,6 +351,7 @@ class ProjectDeliverableSerializer(serializers.ModelSerializer):
             'quarter_type',
             'description',
             'status',
+            'comments',
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
 
@@ -308,6 +360,7 @@ class ProjectObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializer
     project_id = serializers.IntegerField()
     engagement_plan_item_id = serializers.IntegerField(required=False)
     deliverables = ProjectDeliverableSerializer(many=True)
+    comments = CommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = ProjectObjective
@@ -317,6 +370,7 @@ class ProjectObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializer
             'project_id',
             'description',
             'deliverables',
+            'comments',
             'created_at',
             'updated_at',
         )
@@ -338,6 +392,7 @@ class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, seria
     hcp_id = serializers.IntegerField()
     hcp = HCPSerializer(required=False, read_only=True)
     objectives = HCPObjectiveSerializer(many=True, required=False)
+    comments = CommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = EngagementPlanHCPItem
@@ -347,6 +402,7 @@ class EngagementPlanHCPItemSerializer(NestedWritableFieldsSerializerMixin, seria
             'hcp',
             'hcp_id',
             'objectives',
+            'comments',
             'reason',
             'reason_other',
             'removed_at',
@@ -370,6 +426,7 @@ class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixi
     project_id = serializers.IntegerField()
     engagement_plan_id = serializers.IntegerField(required=False)
     objectives = ProjectObjectiveSerializer(many=True)
+    comments = CommentSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = EngagementPlanProjectItem
@@ -382,7 +439,8 @@ class EngagementPlanProjectItemItemSerializer(NestedWritableFieldsSerializerMixi
             'reason_removed',
             'created_at',
             'updated_at',
-            'objectives'
+            'objectives',
+            'comments',
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
         nested_fields = {
@@ -428,30 +486,6 @@ class EngagementPlanSerializer(NestedWritableFieldsSerializerMixin, serializers.
             validated_data['user'] = user
 
         return super().create(validated_data)
-
-
-class UserSerializer(serializers.ModelSerializer):
-    group_names = serializers.SerializerMethodField()
-    permissions = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'id',
-            'email',
-            'group_names',
-            'permissions',
-            'first_name',
-            'last_name',
-            'affiliate_groups',
-            'tas',
-        )
-
-    def get_group_names(self, user):
-        return [group.name for group in user.groups.all()]
-
-    def get_permissions(self, user):
-        return user.get_all_permissions()
 
 
 class InteractionSerializer(serializers.ModelSerializer):
@@ -503,4 +537,3 @@ class InteractionSerializer(serializers.ModelSerializer):
             validated_data['user'] = user
 
         return super().create(validated_data)
-
