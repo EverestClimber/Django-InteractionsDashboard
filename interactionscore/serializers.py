@@ -61,7 +61,7 @@ class NestedWritableFieldsSerializerMixin:
                 item_data[parent_field_name] = obj.id
                 serializer_class = self.Meta.nested_fields[field_name]['serializer']
                 serializer = serializer_class(data=item_data)
-                serializer.is_valid()
+                serializer.is_valid(raise_exception=True)
                 serializer.save()
 
         return obj
@@ -93,7 +93,7 @@ class NestedWritableFieldsSerializerMixin:
                         model_class.objects.get(id=item_data['id']),
                         item_data,
                         partial=True)
-                    serializer.is_valid()
+                    serializer.is_valid(raise_exception=True)
                     serializer.save()
                 # crate those without id
                 else:
@@ -101,7 +101,7 @@ class NestedWritableFieldsSerializerMixin:
                         'parent_field_name', self._guess_parent_ref_field_name())
                     item_data[parent_field_name] = obj.id
                     serializer = serializer_class(data=item_data)
-                    serializer.is_valid()
+                    serializer.is_valid(raise_exception=True)
                     serializer.save()
 
         return obj
