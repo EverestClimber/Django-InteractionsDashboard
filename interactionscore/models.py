@@ -136,13 +136,13 @@ class Comment(TimestampedModel, SafeDeleteModel):
         if self.hcp_deliverable:
             on_str.append('on HCP Deliverable #{} of HCP {} {}'.format(
                 self.hcp_deliverable.id,
-                self.hcp_deliverable.hcp.first_name,
-                self.hcp_deliverable.hcp.last_name,
+                self.hcp_deliverable.objective.hcp.first_name,
+                self.hcp_deliverable.objective.hcp.last_name,
             ))
         if self.project_deliverable:
             on_str.append('on Project Objective #{} of Project {}'.format(
                 self.project_deliverable.id,
-                self.project_deliverable.project.title,
+                self.project_deliverable.objective.project.title,
             ))
 
         return '{by} {on} @ {at}'.format(
@@ -234,6 +234,10 @@ class ProjectObjective(TimestampedModel, SafeDeleteModel):
     engagement_plan_item = m.ForeignKey(EngagementPlanProjectItem, on_delete=m.CASCADE,
                                         related_name='objectives')
     project = m.ForeignKey('Project', on_delete=m.CASCADE)
+    bcsf = m.ForeignKey('BrandCriticalSuccessFactor', on_delete=m.CASCADE,
+                        null=True, blank=True)
+    medical_plan_objective = m.ForeignKey('MedicalPlanObjective', on_delete=m.CASCADE,
+                                          null=True, blank=True)
 
     description = m.TextField()
 

@@ -171,6 +171,12 @@ class CommentSerializer(serializers.ModelSerializer):
             'hcp_deliverable',
             'project_deliverable',
             'message',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
         )
 
 
@@ -295,6 +301,12 @@ class HCPDeliverableSerializer(serializers.ModelSerializer):
             'description',
             'status',
             'comments',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
 
@@ -352,6 +364,12 @@ class ProjectDeliverableSerializer(serializers.ModelSerializer):
             'description',
             'status',
             'comments',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = (
+            'created_at',
+            'updated_at',
         )
         extra_kwargs = {'id': {'read_only': False, 'required': False}}
 
@@ -369,6 +387,8 @@ class ProjectObjectiveSerializer(NestedWritableFieldsSerializerMixin, serializer
             'engagement_plan_item_id',
             'project_id',
             'description',
+            'bcsf_id',
+            'medical_plan_objective_id',
             'deliverables',
             'comments',
             'created_at',
