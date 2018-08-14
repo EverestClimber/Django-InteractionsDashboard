@@ -380,8 +380,18 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     purpose = m.TextField()
 
     is_joint_visit = m.BooleanField(default=False, verbose_name='Joint visit')
+    is_joint_visit_manager_approved = m.BooleanField(
+        default=False, verbose_name='Joint visit approved by Manager')
     joint_visit_with = m.TextField(blank=True)  # when is_joint_visit=True
-    joint_visit_reason = m.TextField(blank=True)  # when is_joint_visit=True
+
+    class JointVisitReason(ChoiceEnum):
+        option1 = 'Option 1'
+        option2 = 'Option 2'
+        other = 'Other'
+
+    joint_visit_reason = m.TextField(
+        blank=True, choices=JointVisitReason.choices())  # when is_joint_visit=True
+    joint_visit_reason_other = m.TextField(blank=True)  # when is_joint_visit_reason=other
 
     class OriginOfInteraction(ChoiceEnum):
         medinfo_enquiry = 'MedInfo enquiry'
