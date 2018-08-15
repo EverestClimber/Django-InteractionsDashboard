@@ -33,7 +33,7 @@ LOGGING = {
         'debug_log_file': {  # for temporary use while debugging
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, '/logs/interactions/debug.log'),
+            'filename': os.path.join(BASE_DIR, 'logs/interactions/debug.log'),
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 10,
             'formatter': 'verbose',
@@ -41,7 +41,7 @@ LOGGING = {
         'all_log_file': {  # complete log
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, '/logs/interactions/all.log'),
+            'filename': os.path.join(BASE_DIR, 'logs/interactions/all.log'),
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 10,
             'formatter': 'verbose',
@@ -49,7 +49,7 @@ LOGGING = {
         'err_log_file': {  # errors log
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, '/logs/interactions/error.log'),
+            'filename': os.path.join(BASE_DIR, 'logs/interactions/error.log'),
             'maxBytes': 10 * 1024 * 1024,
             'backupCount': 10,
             'formatter': 'verbose',
