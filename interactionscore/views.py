@@ -6,6 +6,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     IsAuthenticated,
 )
@@ -38,6 +39,10 @@ from .serializers import (
     BrandCriticalSuccessFactorSerializer,
     MedicalPlanObjectiveSerializer,
 )
+
+
+class Pagination(LimitOffsetPagination):
+    default_limit = 100
 
 
 class AffiliateGroupViewSet(viewsets.ModelViewSet):
@@ -359,6 +364,7 @@ class InteractionViewSet(mixins.CreateModelMixin,
     queryset = Interaction.objects.all()
     serializer_class = InteractionSerializer
     permission_classes = (IsAuthenticated,)
+    # pagination_class = Pagination
 
     #################################################
     # Permissions

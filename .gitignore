@@ -45,3 +45,6 @@ local_settings.py
 
 ## Uploaded/generated files
 /media/
+
+## logs
+/logs/
