@@ -37,9 +37,11 @@ router.register(r'brand-critical-success-factors', core_views.BrandCriticalSucce
 router.register(r'medical-plan-objectives', core_views.MedicalPlanObjectiveViewSet)
 
 urlpatterns = [
+    path(r'', include('django.contrib.auth.urls')),
     path('djadmin/', admin.site.urls),
     path('nested_admin/', include('nested_admin.urls')),
     path('api/v1/', include([
+        path('rest-auth/', include('rest_auth.urls')),
         path('token/obtain/', obtain_jwt_token),
         path('token/refresh/', refresh_jwt_token),
         path('token/verify/', verify_jwt_token),

@@ -40,9 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'nested_admin',
     'admin_reorder',
+    'rest_auth',
     'interactionscore',
 ]
 
@@ -60,10 +62,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'interactions.urls'
 
+print("\n=== tempates dir:", os.path.join(BASE_DIR, 'templates'))
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -133,6 +137,8 @@ JWT_AUTH = {
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=14),
 }
 
+# Django-Rest-Auth
+REST_USE_JWT = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

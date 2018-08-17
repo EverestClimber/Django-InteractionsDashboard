@@ -1,6 +1,7 @@
 from django.utils.text import camel_case_to_spaces
 from rest_framework import serializers
 from collections import defaultdict, OrderedDict
+from rest_auth.serializers import PasswordResetSerializer
 from .models import (
     Comment,
     EngagementPlan,
