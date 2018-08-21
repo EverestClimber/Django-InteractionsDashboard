@@ -271,20 +271,32 @@ class HCPSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'email',
+            'phone',
+            'contact_person_first_name',
+            'contact_person_last_name',
+            'contact_person_email',
+            'contact_person_phone',
+            'time_availability',
             'institution_name',
             'institution_address',
             'contact_preference',
             'affiliate_groups',
             'tas',
+            'tas_names',
             'city',
             'country',
             'has_consented',
+            'interactions_count',
+            'last_interaction',
             'created_at',
             'updated_at',
         )
         read_only_fields = (
             'created_at',
             'updated_at',
+            'tas_names',
+            'interactions_count',
+            'last_interaction',
         )
 
 

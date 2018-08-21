@@ -335,6 +335,20 @@ class HCP(TimestampedModel, SafeDeleteModel):
                                                             self.first_name,
                                                             self.last_name)
 
+    @property
+    def interactions_count(self):
+        return self.interactions.count()
+
+    @property
+    def last_interaction(self):
+        li = Interaction.objects.filter(hcp=self).latest('time_of_interaction').time_of_interaction
+        return li
+
+    @property
+    def tas_names(self):
+        t = self.tas.all()
+        return ", ".join([str(x) for x in t])
+
     @staticmethod
     def add_full_text_search_to_query(query, search_str):
         words = filter(
@@ -371,7 +385,7 @@ class Interaction(TimestampedModel, SafeDeleteModel):
     user = m.ForeignKey('User', on_delete=m.CASCADE,
                         # limit_choices_to={'groups__name': 'Role MSL'},
                         verbose_name='MSL')
-    hcp = m.ForeignKey('HCP', on_delete=m.CASCADE)
+    hcp = m.ForeignKey('HCP', on_delete=m.CASCADE, related_name='interactions')
     hcp_objective = m.ForeignKey('HCPObjective', on_delete=m.SET_NULL, null=True, blank=True)
     project = m.ForeignKey('Project', on_delete=m.SET_NULL, null=True, blank=True)
     resources = m.ManyToManyField('Resource', blank=True, related_name='interactions')
