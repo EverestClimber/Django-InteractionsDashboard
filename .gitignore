@@ -39,6 +39,7 @@ local_settings.py
 
 ## virtual environments
 .env
+/env
 
 ## Static files (generated/gathered)
 /static/
